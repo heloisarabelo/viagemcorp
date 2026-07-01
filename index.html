@@ -1,0 +1,3190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ViagemCorp</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<!-- Supabase SDK not needed - using REST API directly -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F4F0;--surf:#fff;--surf2:#F9F8F5;--surf3:#EFEDE8;
+  --bor:#DDD9D0;--bor2:#C8C4BB;
+  --tx:#18170F;--tx2:#5A5850;--tx3:#9E9C95;
+  --ac:#1B4FD8;--ac-bg:#EEF3FF;
+  --gr:#0D7A4E;--gr-bg:#E8F7F1;--gr-bor:#A3DFC5;
+  --am:#92400E;--am-bg:#FFFBEB;--am-bor:#FDE68A;
+  --rd:#B91C1C;--rd-bg:#FEF2F2;--rd-bor:#FCA5A5;
+  --bl:#1D4ED8;--bl-bg:#EFF6FF;
+  --sh:0 1px 3px rgba(0,0,0,.06);--shm:0 4px 16px rgba(0,0,0,.1);
+  --r:10px;--rs:6px;
+  --font:'Segoe UI',sans-serif;--mono:'Consolas',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5;min-height:100vh}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem}
+.lbox{background:var(--surf);border:1px solid var(--bor);border-radius:16px;padding:2.5rem;width:100%;max-width:420px;box-shadow:var(--shm)}
+.llogo{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+.llogo-ic{width:42px;height:42px;background:var(--ac);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.llogo-ic svg{width:22px;height:22px;fill:#fff}
+.llogo-tx{font-size:19px;font-weight:700}
+.ltitle{font-size:24px;font-weight:700;margin-bottom:4px}
+.lsub{font-size:13px;color:var(--tx2);margin-bottom:1.75rem}
+.lerr{background:var(--rd-bg);border:1px solid var(--rd-bor);color:var(--rd);border-radius:var(--rs);padding:10px 12px;font-size:13px;margin-bottom:14px;display:none}
+#app{display:none;min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:var(--surf);border-right:1px solid var(--bor);display:flex;flex-direction:column;z-index:100}
+.sb-logo{padding:1.25rem 1rem 1rem;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bor)}
+.sb-logo-ic{width:28px;height:28px;background:var(--ac);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.sb-logo-ic svg{width:14px;height:14px;fill:#fff}
+.sb-logo-tx{font-size:15px;font-weight:700}
+.sb-user{padding:.75rem 1rem;border-bottom:1px solid var(--bor);background:var(--surf2)}
+.sb-uname{font-size:13px;font-weight:600}
+.sb-urole{font-size:11px;color:var(--tx3);font-family:var(--mono)}
+.nav{padding:.5rem .6rem;flex:1;overflow-y:auto}
+.nav-sec{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;padding:10px 10px 4px}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:500;color:var(--tx2);margin-bottom:1px;position:relative;user-select:none}
+.ni:hover{background:var(--surf2);color:var(--tx)}
+.ni.active{background:var(--ac-bg);color:var(--ac)}
+.ni svg{width:15px;height:15px;flex-shrink:0}
+.nbadge{position:absolute;right:8px;background:var(--ac);color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;min-width:18px;text-align:center}
+.sb-foot{padding:.5rem .75rem;border-top:1px solid var(--bor);flex-shrink:0}
+.logout-btn{width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--rs);border:none;background:none;font-family:var(--font);font-size:13px;color:var(--tx3);cursor:pointer}
+.logout-btn:hover{background:var(--rd-bg);color:var(--rd)}
+.main{margin-left:220px;padding:2rem;max-width:900px}
+.sec{display:none}.sec.active{display:block}
+.pghdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem}
+.pgtitle{font-size:22px;font-weight:700;margin-bottom:3px}
+.pgsub{font-size:13px;color:var(--tx2)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:var(--surf);border:1px solid var(--bor);border-radius:var(--r);padding:1rem 1.25rem;box-shadow:var(--sh)}
+.mval{font-size:26px;font-weight:700;line-height:1;margin-bottom:4px}
+.mlbl{font-size:12px;color:var(--tx2);font-weight:500}
+.card{background:var(--surf);border:1px solid var(--bor);border-radius:var(--r);padding:1.5rem;margin-bottom:1rem;box-shadow:var(--sh)}
+.ctitle{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--tx3);margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--bor)}
+.frow{display:grid;gap:12px;margin-bottom:12px}
+.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+.lbl{font-size:12px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px}
+.req{color:var(--rd)}
+input,select,textarea{font-family:var(--font);font-size:14px;color:var(--tx);background:var(--bg);border:1px solid var(--bor);border-radius:var(--rs);padding:9px 12px;width:100%;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(27,79,216,.1);background:#fff}
+input.err,select.err,textarea.err{border-color:var(--rd)!important}
+textarea{resize:vertical;min-height:80px;line-height:1.6}
+select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235A5850' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.hint{font-size:12px;color:var(--tx3)}
+.errmsg{font-size:12px;color:var(--rd);display:none}.errmsg.show{display:block}
+.rgroup{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.ropt{position:relative;cursor:pointer}
+.ropt input[type=radio]{position:absolute;opacity:0;width:0;height:0}
+.rbtn{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--tx2);background:var(--surf);border:1px solid var(--bor);border-radius:var(--rs);padding:7px 14px;user-select:none}
+.ropt:hover .rbtn{border-color:var(--bor2)}
+.ropt input:checked~.rbtn{border-color:var(--ac);background:var(--ac-bg);color:var(--ac)}
+.rdot{width:12px;height:12px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rdot::after{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;opacity:0}
+.ropt input:checked~.rbtn .rdot::after{opacity:1}
+.ropt input[type=checkbox]:checked~.rbtn{border-color:var(--ac);background:var(--ac-bg);color:var(--ac)}
+.btn{padding:10px 20px;border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:7px}
+.btn-p{background:var(--ac);color:#fff}.btn-p:hover{background:#1744C0}
+.btn-p:disabled{background:#93AEDE;cursor:not-allowed}
+.btn-o{background:none;border:1px solid var(--bor2);color:var(--tx2)}.btn-o:hover{border-color:var(--ac);color:var(--ac)}
+.btn-g{background:var(--gr);color:#fff}.btn-g:hover{background:#0A6640}
+.btn-r{background:none;border:1px solid var(--rd-bor);color:var(--rd)}.btn-r:hover{background:var(--rd-bg)}
+.btn-am{background:none;border:1px solid var(--am-bor);color:var(--am)}.btn-am:hover{background:var(--am-bg)}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:var(--rs)}.btn-full{width:100%;justify-content:center}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.b-gr{background:var(--gr-bg);color:var(--gr)}.b-am{background:var(--am-bg);color:var(--am)}.b-rd{background:var(--rd-bg);color:var(--rd)}.b-bl{background:var(--bl-bg);color:var(--bl)}.b-gy{background:var(--surf3);color:var(--tx2)}.b-ac{background:var(--ac-bg);color:var(--ac)}
+.alert{padding:10px 14px;border-radius:var(--rs);font-size:13px;margin-bottom:14px;display:flex;gap:9px;align-items:flex-start;border:1px solid}
+.a-am{background:var(--am-bg);border-color:var(--am-bor);color:var(--am)}
+.a-bl{background:var(--bl-bg);border-color:#BFDBFE;color:var(--bl)}
+.a-gr{background:var(--gr-bg);border-color:var(--gr-bor);color:var(--gr)}
+.a-rd{background:var(--rd-bg);border-color:var(--rd-bor);color:var(--rd)}
+.alert svg{flex-shrink:0;margin-top:1px}
+.rrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--bor)}.rrow:last-child{border-bottom:none}
+.rmain{flex:1;min-width:0}.rname{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rmeta{font-size:12px;color:var(--tx2);margin-top:1px}.ract{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.asum{background:var(--surf2);border:1px solid var(--bor);border-radius:var(--rs);overflow:hidden;margin-bottom:14px}
+.asrow{display:grid;grid-template-columns:160px 1fr;padding:8px 14px;border-bottom:1px solid var(--bor);font-size:13px}.asrow:last-child{border-bottom:none}
+.asl{color:var(--tx2);font-weight:500}.asv{font-weight:500}
+.total-row{background:var(--ac-bg)}.total-row .asv{color:var(--ac);font-size:15px;font-weight:700}
+.img-drop{border:2px dashed var(--bor2);border-radius:var(--rs);padding:1.5rem;text-align:center;cursor:pointer;min-height:80px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px}
+.img-drop:hover{border-color:var(--ac)}
+.img-drop img{max-height:140px;max-width:100%;border-radius:4px}
+.admt{width:100%;border-collapse:collapse}
+.admt th{text-align:left;padding:8px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--tx3);background:var(--surf2);border-bottom:1px solid var(--bor)}
+.admt td{padding:10px 12px;border-bottom:1px solid var(--bor);font-size:13px;vertical-align:middle}.admt tr:last-child td{border-bottom:none}
+.agcard{background:var(--surf);border:1px solid var(--bor);border-radius:var(--r);padding:1.25rem;margin-bottom:10px;box-shadow:var(--sh)}
+.ag-openbtn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--rs);background:var(--ac-bg);color:var(--ac);border:1px solid #C0D4FF;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none}
+.pwwrap{position:relative}.pwwrap input{padding-right:42px}
+.pwtog{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx3);padding:4px;display:flex;align-items:center}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--tx);color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:var(--shm)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;opacity:0;transition:opacity .25s;pointer-events:none}
+.drawer-overlay.open{opacity:1;pointer-events:all}
+.drawer{position:fixed;top:0;right:0;width:520px;max-width:95vw;height:100vh;background:var(--surf);box-shadow:-8px 0 32px rgba(0,0,0,.12);z-index:201;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column}
+.drawer.open{transform:translateX(0)}
+.drawer-hdr{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--bor);position:sticky;top:0;background:var(--surf);z-index:1}
+.drawer-title{font-size:16px;font-weight:700}
+.drawer-close{background:none;border:none;cursor:pointer;color:var(--tx3);padding:6px;border-radius:var(--rs);display:flex;align-items:center}
+.drawer-close:hover{background:var(--surf2);color:var(--tx)}
+.drawer-body{padding:1.5rem;flex:1}
+.timeline{border-left:2px solid var(--bor);margin-left:10px;padding-left:1.25rem}
+.tl-item{position:relative;margin-bottom:1.25rem}
+.tl-dot{position:absolute;left:-1.6rem;top:3px;width:12px;height:12px;border-radius:50%;border:2px solid var(--bor);background:var(--surf)}
+.tl-dot.done{border-color:var(--gr);background:var(--gr)}
+.tl-dot.warn{border-color:#F59E0B;background:#F59E0B}
+.tl-dot.bad{border-color:var(--rd);background:var(--rd)}
+.tl-dot.info{border-color:var(--ac);background:var(--ac)}
+.tl-label{font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:2px}
+.tl-date{font-size:11px;color:var(--tx3);margin-bottom:4px;font-family:var(--mono)}
+.tl-body{font-size:13px;color:var(--tx)}
+.anexo-card{border:1px solid var(--bor);border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.anexo-icon{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--rd-bg)}
+.anexo-info{flex:1;min-width:0}
+.anexo-nome{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.anexo-desc{font-size:12px;color:var(--tx2)}
+.hidden{display:none!important}
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{margin:0;padding:0;background:#fff}
+  body > *:not(#print-area){display:none!important}
+  #print-area{
+    display:block!important;
+    position:static!important;
+    width:100%!important;
+    padding:2rem!important;
+    font-family:Arial,sans-serif!important;
+    font-size:12px!important;
+    color:#000!important;
+    background:#fff!important;
+    overflow:visible!important;
+  }
+  #print-area *{overflow:visible!important}
+  #print-area h1{font-size:18px;font-weight:700;margin-bottom:4px;page-break-after:avoid}
+  #print-area h2{font-size:13px;font-weight:700;margin:14px 0 6px;border-bottom:1px solid #ccc;padding-bottom:4px;page-break-after:avoid}
+  #print-area table{width:100%;border-collapse:collapse;margin-bottom:12px;page-break-inside:auto}
+  #print-area tr{page-break-inside:avoid}
+  #print-area td{padding:5px 8px;border:1px solid #ddd;font-size:11px;vertical-align:top}
+  #print-area td:first-child{font-weight:600;color:#444;width:130px;white-space:nowrap}
+  #print-area .orc-print{border:1px solid #ddd;border-radius:4px;padding:8px;margin-bottom:10px;page-break-inside:avoid}
+  #print-area img{max-width:100%;height:auto;border:1px solid #ddd;border-radius:3px;display:block;margin:4px 0}
+  #print-area .status-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid #999;color:#333}
+  #print-area .section-ok{color:#0D7A4E;font-weight:700}
+  #print-area .section-bad{color:#B91C1C;font-weight:700}
+  #print-area .section-warn{color:#92400E;font-weight:700}
+  #print-area .footer-print{margin-top:24px;padding-top:12px;border-top:1px solid #ccc;font-size:10px;color:#888;text-align:center}
+}
+
+/* ── MOBILE RESPONSIVE ──────────────────────────────────────────────────── */
+@media(max-width:700px){
+  /* Sidebar vira bottom nav */
+  .sidebar{
+    position:fixed;top:auto;bottom:0;left:0;right:0;
+    width:100%;height:auto;
+    flex-direction:row;
+    border-right:none;border-top:1px solid var(--bor);
+    z-index:100;
+  }
+  .sb-logo,.sb-user{display:none}
+  .sb-foot{display:none!important}
+  .nav{
+    display:flex;flex-direction:row;overflow-x:auto;
+    padding:6px 8px;gap:2px;flex:1;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-sec{display:none}
+  .ni{
+    flex-direction:column;gap:3px;padding:6px 10px;
+    font-size:10px;min-width:64px;text-align:center;
+    border-radius:var(--rs);white-space:nowrap;
+  }
+  .ni svg{width:18px;height:18px}
+  .nbadge{position:static;margin-left:2px}
+
+  /* Main content above bottom nav */
+  .main{
+    margin-left:0;
+    padding:1rem;
+    padding-bottom:80px;
+    max-width:100%;
+  }
+
+  /* Grid columns collapse to 1 */
+  .c2,.c3{grid-template-columns:1fr!important}
+  .metrics{grid-template-columns:1fr 1fr!important;gap:8px}
+  .mval{font-size:22px}
+
+  /* Cards */
+  .card{padding:1rem}
+  .pgtitle{font-size:18px}
+
+  /* Drawer full screen on mobile */
+  .drawer{width:100%;max-width:100%}
+
+  /* Buttons */
+  .btn{font-size:13px;padding:9px 16px}
+  .btn-full{width:100%}
+
+  /* rgroup wraps */
+  .rgroup{flex-wrap:wrap}
+
+  /* Table in asum */
+  .asum .asrow{grid-template-columns:110px 1fr;font-size:12px}
+
+  /* Page header */
+  .pghdr{flex-direction:column;gap:10px}
+  .pghdr .btn{width:100%}
+
+  /* Login box */
+  .lbox{padding:1.5rem}
+  .ltitle{font-size:20px}
+
+  /* Toast */
+  #toast{max-width:90vw;white-space:normal;text-align:center}
+
+  /* Hide text in action buttons on list */
+  .btn-sm{padding:5px 8px;font-size:12px}
+}
+
+@media(max-width:400px){
+  .metrics{grid-template-columns:1fr 1fr!important}
+  .mval{font-size:18px}
+  .mlbl{font-size:11px}
+}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="lbox">
+    <div class="llogo">
+      <div class="llogo-ic"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
+      <span class="llogo-tx">ViagemCorp</span>
+    </div>
+    <div class="ltitle">Bem-vindo</div>
+    <div class="lsub">Gestao de viagens corporativas</div>
+    <div class="lerr" id="lerr"></div>
+    <div class="field" style="margin-bottom:12px">
+      <label class="lbl">Usuario</label>
+      <input id="lin" placeholder="seu login" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('lpass').focus()">
+    </div>
+    <div class="field" style="margin-bottom:20px">
+      <label class="lbl">Senha</label>
+      <div class="pwwrap">
+        <input id="lpass" type="password" placeholder="senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="pwtog" type="button" onclick="togglePw('lpass')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn btn-p btn-full" id="login-btn" onclick="doLogin()" disabled>Carregando...</button>
+    <div style="text-align:center;margin-top:14px">
+      <button onclick="toggleTrocarSenhaLogin()" style="background:none;border:none;color:var(--ac);font-size:13px;cursor:pointer;text-decoration:underline">
+        Trocar minha senha
+      </button>
+    </div>
+
+    <!-- Painel trocar senha (oculto inicialmente) -->
+    <div id="troca-senha-box" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--bor)">
+      <div style="font-size:15px;font-weight:700;margin-bottom:4px">Trocar senha</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:14px">Informe seu login e a senha atual para definir uma nova.</div>
+      <div id="troca-err" style="background:var(--rd-bg);border:1px solid var(--rd-bor);color:var(--rd);border-radius:var(--rs);padding:10px 12px;font-size:13px;margin-bottom:12px;display:none"></div>
+      <div id="troca-ok" style="background:var(--gr-bg);border:1px solid var(--gr-bor);color:var(--gr);border-radius:var(--rs);padding:10px 12px;font-size:13px;margin-bottom:12px;display:none">&#10003; Senha alterada com sucesso! Faca login com a nova senha.</div>
+      <div class="field" style="margin-bottom:10px">
+        <label class="lbl">Login</label>
+        <input id="tc-login" placeholder="seu login" autocomplete="username">
+      </div>
+      <div class="field" style="margin-bottom:10px">
+        <label class="lbl">Senha atual</label>
+        <div class="pwwrap">
+          <input type="password" id="tc-atual" placeholder="Senha atual" autocomplete="current-password">
+          <button class="pwtog" type="button" onclick="togglePw('tc-atual')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:10px">
+        <label class="lbl">Nova senha</label>
+        <div class="pwwrap">
+          <input type="password" id="tc-nova" placeholder="Minimo 6 caracteres" autocomplete="new-password">
+          <button class="pwtog" type="button" onclick="togglePw('tc-nova')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label class="lbl">Confirmar nova senha</label>
+        <div class="pwwrap">
+          <input type="password" id="tc-conf" placeholder="Repita a nova senha" autocomplete="new-password" onkeydown="if(event.key==='Enter')confirmarTrocaSenha()">
+          <button class="pwtog" type="button" onclick="togglePw('tc-conf')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button class="btn btn-p btn-full" onclick="confirmarTrocaSenha()">Confirmar nova senha</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- Mobile top bar -->
+  <div id="mob-bar" style="display:none;position:fixed;top:0;left:0;right:0;height:50px;background:var(--surf);border-bottom:1px solid var(--bor);z-index:99;align-items:center;padding:0 1rem;gap:10px;box-shadow:var(--sh)">
+    <div style="width:24px;height:24px;background:var(--ac);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+    </div>
+    <div style="flex:1;font-size:14px;font-weight:700" id="mob-title">ViagemCorp</div>
+    <div style="font-size:11px;color:var(--tx3)" id="mob-user"></div>
+  </div>
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-ic"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
+      <span class="sb-logo-tx">ViagemCorp</span>
+    </div>
+    <div class="sb-user"><div class="sb-uname" id="sb-nome">-</div><div class="sb-urole" id="sb-role">-</div></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sb-foot">
+      <button class="logout-btn" onclick="abrirTrocarSenha()" style="color:var(--tx2);margin-bottom:2px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Alterar senha
+      </button>
+      <button class="logout-btn" onclick="logout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair
+      </button>
+    </div>
+  </div>
+  <div class="main" id="main-content">
+
+    <!-- PAINEL -->
+    <div class="sec" id="sec-painel">
+      <div class="pghdr">
+        <div><div class="pgtitle">Painel</div><div class="pgsub" id="hoje"></div></div>
+        <button class="btn btn-p btn-sm hidden" id="btn-nova-hdr" onclick="goTo('nova')">+ Nova requisicao</button>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="mval" id="m0">0</div><div class="mlbl">Total</div></div>
+        <div class="metric"><div class="mval" style="color:var(--bl)" id="m1">0</div><div class="mlbl">Aguardando cotacao</div></div>
+        <div class="metric"><div class="mval" style="color:#D97706" id="m2">0</div><div class="mlbl">Para aprovar</div></div>
+        <div class="metric"><div class="mval" style="color:var(--rd)" id="m3">0</div><div class="mlbl">Fora do prazo</div></div>
+      </div>
+      <div class="card" id="card-admin-confirmacao" style="display:none">
+        <div class="ctitle" style="color:var(--am)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+          Aguardando confirmacao de compra
+        </div>
+        <div id="painel-admin-confirmacao"></div>
+      </div>
+      <div class="card"><div class="ctitle">Solicitacoes recentes</div><div id="painel-list"></div></div>
+    </div>
+
+    <!-- NOVA REQUISICAO -->
+    <div class="sec" id="sec-nova">
+      <div class="pghdr"><div><div class="pgtitle">Nova requisicao</div><div class="pgsub">A area administrativa recebera um email e fara as cotacoes</div></div></div>
+      <div id="alerta-prazo" class="alert a-am hidden">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+        <span>Viagem com menos de <strong>30 dias</strong> de antecedencia - justificativa obrigatoria.</span>
+      </div>
+      <div class="card">
+        <div class="ctitle">Dados do viajante</div>
+        <div class="frow"><div class="field"><label class="lbl">Nome completo <span class="req">*</span></label><input id="fn" placeholder="Ex: Joao da Silva"><span class="errmsg" id="en">Campo obrigatorio.</span></div></div>
+        <div class="frow c2">
+          <div class="field"><label class="lbl">CPF <span class="req">*</span></label><input id="fcpf" placeholder="000.000.000-00" maxlength="14" oninput="maskCPF(this)"><span class="errmsg" id="ecpf">Campo obrigatorio.</span></div>
+          <div class="field"><label class="lbl">Nascimento <span class="req">*</span></label><input type="date" id="fnasc"><span class="errmsg" id="enasc">Campo obrigatorio.</span></div>
+        </div>
+        <div class="frow"><div class="field"><label class="lbl">E-mail do viajante <span class="req">*</span></label><input type="email" id="femail" placeholder="email.viajante@empresa.com.br"><span class="errmsg" id="eemail">E-mail obrigatorio.</span></div></div>
+        <div class="field"><label class="lbl">Tipo de passagem</label>
+          <div class="rgroup">
+            <label class="ropt"><input type="radio" name="tipo" value="aerea" checked onchange="toggleRG()"><div class="rbtn"><span class="rdot"></span>Aerea</div></label>
+            <label class="ropt"><input type="radio" name="tipo" value="rodoviaria" onchange="toggleRG()"><div class="rbtn"><span class="rdot"></span>Rodoviaria</div></label>
+          </div>
+        </div>
+        <div class="field hidden" id="rg-wrap" style="margin-top:12px"><label class="lbl">RG <span class="req">*</span></label><input id="frg"><span class="errmsg" id="erg">Campo obrigatorio.</span></div>
+      </div>
+      <div class="card">
+        <div class="ctitle">Rota</div>
+        <div class="frow c2">
+          <div class="field"><label class="lbl">Partida <span class="req">*</span></label><input id="fpar" placeholder="Ex: Belo Horizonte"><span class="errmsg" id="epar">Obrigatorio.</span></div>
+          <div class="field"><label class="lbl">Destino <span class="req">*</span></label><input id="fdest" placeholder="Ex: Sao Paulo"><span class="errmsg" id="edest">Obrigatorio.</span></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Ida</div>
+        <div class="frow c3">
+          <div class="field"><label class="lbl">Data <span class="req">*</span></label><input type="date" id="fida" onchange="checkPrazo();calcAlim()"><span class="errmsg" id="eida">Obrigatorio.</span></div>
+          <div class="field"><label class="lbl">Datas alternativas</label><input id="faltida" placeholder="Ex: dia 13 ou 14"></div>
+          <div class="field"><label class="lbl">Horario <span class="req">*</span></label><input id="fhorida" placeholder="06:30 as 09:00" oninput="calcAlim()"><span class="errmsg" id="ehorida">Obrigatorio.</span></div>
+        </div>
+        <div id="av-ida" class="alert a-am hidden" style="margin-bottom:10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg> Segundas e sextas costumam ter tarifas mais altas.</div>
+        <!-- Tipo de viagem -->
+        <div class="field" style="margin-bottom:14px">
+          <label class="lbl">Tipo de viagem</label>
+          <div class="rgroup">
+            <label class="ropt"><input type="radio" name="tipovg" value="idavolta" checked onchange="toggleTipoViagem()"><div class="rbtn"><span class="rdot"></span>Ida e volta</div></label>
+            <label class="ropt"><input type="radio" name="tipovg" value="soida" onchange="toggleTipoViagem()"><div class="rbtn"><span class="rdot"></span>Somente ida</div></label>
+            <label class="ropt"><input type="radio" name="tipovg" value="multitrecho" onchange="toggleTipoViagem()"><div class="rbtn"><span class="rdot"></span>Multitrechos</div></label>
+          </div>
+        </div>
+
+        <!-- Retorno (ida e volta) -->
+        <div id="retorno-wrap">
+          <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-top:4px">Retorno</div>
+          <div class="frow c2">
+            <div class="field"><label class="lbl">Data</label><input type="date" id="fvolta" onchange="chkDay(this.value,'av-volta');calcAlim()"><span class="errmsg" id="evolta">Obrigatorio.</span></div>
+            <div class="field"><label class="lbl">Horario</label><input id="fhorvolta" placeholder="19:00 as 21:00"><span class="errmsg" id="ehorvolta">Obrigatorio.</span></div>
+          </div>
+          <div id="av-volta" class="alert a-am hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg> Segundas e sextas costumam ter tarifas mais altas.</div>
+        </div>
+
+        <!-- Multitrechos -->
+        <div id="multitrecho-wrap" class="hidden">
+          <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-top:4px">Trechos adicionais</div>
+          <div id="trechos-list"></div>
+          <button type="button" class="btn btn-o btn-sm" onclick="addTrecho()" style="margin-top:4px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            + Adicionar trecho
+          </button>
+        </div>
+
+        <!-- Somente ida -->
+        <div id="soida-info" class="hidden">
+          <div class="alert a-bl" style="margin-top:8px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Viagem somente de ida. Data de retorno a definir posteriormente.
+          </div>
+        </div>
+      </div>
+      <div class="card"><div class="ctitle">Bagagem</div>
+        <div class="field"><label class="lbl">Despachar bagagem?</label>
+          <div class="rgroup">
+            <label class="ropt"><input type="radio" name="bag" value="nao" checked><div class="rbtn"><span class="rdot"></span>Nao</div></label>
+            <label class="ropt"><input type="radio" name="bag" value="sim"><div class="rbtn"><span class="rdot"></span>Sim</div></label>
+          </div>
+        </div>
+      </div>
+      <div class="card"><div class="ctitle">Motivo e classificacao</div>
+        <div class="frow"><div class="field"><label class="lbl">Motivo <span class="req">*</span></label><textarea id="fmotivo" placeholder="Ex: Reuniao com cliente..."></textarea><span class="errmsg" id="emotivo">Obrigatorio.</span></div></div>
+        <div class="frow c2">
+          <div class="field"><label class="lbl">Classe de lancamento <span class="req">*</span></label>
+            <select id="fclasse" onchange="updAprov()">
+              <option value="">Selecione...</option>
+              <option value="mkt_comercial">Viagem Mkt ou Comercial</option>
+              <option value="filial_matriz">Viagem Filial/Matriz</option>
+              <option value="implantacao">Viagem - Implantacao</option>
+              <option value="produto">Viagem - Produto (PO/Lider Tecnico)</option>
+              <option value="treinamento_eventos">Viagem Treinamento ou Eventos - RH</option>
+            </select><span class="errmsg" id="eclasse">Obrigatorio.</span>
+          </div>
+          <div class="field"><label class="lbl">Centro de custos <span class="req">*</span></label>
+            <select id="fcentro"><option value="">Selecione...</option><option>Condominio</option><option>Administradora</option><option>Shopping</option><option>CSC</option><option>Diretoria</option></select>
+            <span class="errmsg" id="ecentro">Obrigatorio.</span>
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px">
+          <label class="lbl">Aprovador <span class="req">*</span></label>
+          <select id="faprovador"><option value="">Selecione o aprovador...</option></select>
+          <span class="errmsg" id="eaprovador">Selecione o aprovador.</span>
+          <div id="aprov-dica" class="alert a-bl hidden" style="margin-top:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span id="aprov-dica-tx"></span></div>
+        </div>
+      </div>
+      <div class="card"><div class="ctitle">Hospedagem</div>
+        <div class="field" style="margin-bottom:12px"><label class="lbl">Necessita hospedagem?</label>
+          <div class="rgroup">
+            <label class="ropt"><input type="radio" name="hosp" value="nao" checked onchange="toggleHosp()"><div class="rbtn"><span class="rdot"></span>Nao</div></label>
+            <label class="ropt"><input type="radio" name="hosp" value="sim" onchange="toggleHosp()"><div class="rbtn"><span class="rdot"></span>Sim</div></label>
+          </div>
+        </div>
+        <div id="hosp-wrap" class="hidden">
+          <div class="frow"><div class="field"><label class="lbl">Local / Endereco <span class="req">*</span></label><input id="fhosplocal"><span class="errmsg" id="ehosplocal">Obrigatorio.</span></div></div>
+          <div class="field"><label class="lbl">Tipo de acomodacao <span class="req">*</span></label>
+            <div class="rgroup">
+              <label class="ropt"><input type="radio" name="acomo" value="single"><div class="rbtn"><span class="rdot"></span>Single</div></label>
+              <label class="ropt"><input type="radio" name="acomo" value="duplo"><div class="rbtn"><span class="rdot"></span>Duplo</div></label>
+              <label class="ropt"><input type="radio" name="acomo" value="triplo"><div class="rbtn"><span class="rdot"></span>Triplo</div></label>
+            </div>
+            <span class="errmsg" id="eacomo">Selecione o tipo.</span>
+          </div>
+        </div>
+      </div>
+      <!-- ALIMENTACAO -->
+      <div class="card">
+        <div class="ctitle">Alimentacao / Diarias</div>
+        <div style="font-size:13px;color:var(--tx2);margin-bottom:14px">Solicite adiantamento de alimentacao para a viagem. O valor e calculado automaticamente pelas regras da politica.</div>
+
+        <div class="field" style="margin-bottom:14px">
+          <label class="lbl">Solicitar alimentacao?</label>
+          <div class="rgroup">
+            <label class="ropt"><input type="radio" name="alim" value="nao" checked onchange="toggleAlim()"><div class="rbtn"><span class="rdot"></span>Nao</div></label>
+            <label class="ropt"><input type="radio" name="alim" value="sim" onchange="toggleAlim()"><div class="rbtn"><span class="rdot"></span>Sim</div></label>
+          </div>
+        </div>
+
+        <div id="alim-wrap" class="hidden">
+          <div class="frow c2" style="margin-bottom:14px">
+            <div class="field">
+              <label class="lbl">Tipo de solicitacao <span class="req">*</span></label>
+              <div class="rgroup">
+                <label class="ropt"><input type="radio" name="alim-tipo" value="flash" onchange="calcAlim()"><div class="rbtn">&#9889; Flash <span style="font-size:11px;color:var(--tx3)">(CLT)</span></div></label>
+                <label class="ropt"><input type="radio" name="alim-tipo" value="clara" onchange="calcAlim()"><div class="rbtn">&#9733; Clara <span style="font-size:11px;color:var(--tx3)">(PJ)</span></div></label>
+              </div>
+              <span class="errmsg" id="ealim-tipo">Selecione Flash ou Clara.</span>
+            </div>
+            <div class="field">
+              <label class="lbl">Tipo de cidade destino <span class="req">*</span></label>
+              <div class="rgroup">
+                <label class="ropt"><input type="radio" name="alim-cidade" value="interior" checked onchange="calcAlim()"><div class="rbtn">Interior / Geral<br><span style="font-size:10px;color:var(--tx3)">R$ 90,00/dia</span></div></label>
+                <label class="ropt"><input type="radio" name="alim-cidade" value="capital" onchange="calcAlim()"><div class="rbtn">Capital especial<br><span style="font-size:10px;color:var(--tx3)">R$ 110,00/dia</span></div></label>
+              </div>
+              <div style="font-size:11px;color:var(--tx2);margin-top:4px"><strong>Capitais especiais:</strong> São Paulo, Rio de Janeiro, Brasília, Porto Alegre, Curitiba, Salvador, Recife, Florianópolis</div>
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom:14px">
+            <label class="lbl">Tipo de diaria</label>
+            <div class="rgroup">
+              <label class="ropt"><input type="radio" name="alim-diaria" value="cheia" checked onchange="calcAlim()"><div class="rbtn"><span class="rdot"></span>Diaria cheia</div></label>
+              <label class="ropt"><input type="radio" name="alim-diaria" value="metade" onchange="calcAlim()"><div class="rbtn"><span class="rdot"></span>Meia diaria <span style="font-size:11px;color:var(--tx3)">(meio turno ou almoco incluso)</span></div></label>
+            </div>
+          </div>
+
+          <!-- Resumo automatico -->
+          <div id="alim-resumo" style="background:var(--surf2);border:1px solid var(--bor);border-radius:var(--rs);padding:1rem;margin-bottom:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Resumo calculado</div>
+            <div id="alim-regras" style="font-size:12px;color:var(--tx2);margin-bottom:10px"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div style="background:var(--surf);border:1px solid var(--bor);border-radius:var(--rs);padding:8px;text-align:center">
+                <div style="font-size:11px;color:var(--tx3)">Dias de viagem</div>
+                <div style="font-size:18px;font-weight:700" id="alim-dias">0</div>
+              </div>
+              <div style="background:var(--surf);border:1px solid var(--bor);border-radius:var(--rs);padding:8px;text-align:center">
+                <div style="font-size:11px;color:var(--tx3)">Valor/dia</div>
+                <div style="font-size:18px;font-weight:700;color:var(--ac)" id="alim-valdia">R$ 0</div>
+              </div>
+              <div style="background:var(--ac-bg);border:1px solid #C0D4FF;border-radius:var(--rs);padding:8px;text-align:center">
+                <div style="font-size:11px;color:var(--ac)">Total</div>
+                <div style="font-size:18px;font-weight:700;color:var(--ac)" id="alim-total">R$ 0,00</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="frow c2">
+            <div class="field">
+              <label class="lbl">Ajuste manual de diarias</label>
+              <input type="number" id="alim-ajuste" placeholder="Ex: 2.5" step="0.5" min="0.5" oninput="calcAlim()" style="text-align:center;font-weight:700;font-size:16px">
+              <div id="alim-sug" style="font-size:11px;color:var(--tx3);margin-top:3px"></div>
+              <div style="font-size:11px;color:var(--tx3)">Deixe vazio para usar o calculo automatico. Use 0.5 para meia diaria.</div>
+            </div>
+            <div class="field">
+              <label class="lbl">Observacoes da alimentacao</label>
+              <textarea id="alim-obs" placeholder="Ex: Almoco incluso no evento do primeiro dia" style="min-height:80px"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card"><div class="ctitle">Observacoes</div><textarea id="fobs" placeholder="Preferencias, restricoes..."></textarea></div>
+
+      <!-- TRANSPORTE -->
+      <div class="card">
+        <div class="ctitle">Transporte urbano</div>
+        <div style="font-size:13px;color:var(--tx2);margin-bottom:14px">Solicite cadastro em aplicativos de transporte para uso durante a viagem.</div>
+
+        <div class="field" style="margin-bottom:14px">
+          <label class="lbl">Aplicativos necessarios</label>
+          <div class="rgroup">
+            <label class="ropt"><input type="checkbox" id="tr-uber" onchange="toggleTransporte()"><div class="rbtn">🚗 Uber</div></label>
+            <label class="ropt"><input type="checkbox" id="tr-99" onchange="toggleTransporte()"><div class="rbtn">🟡 99 Taxi</div></label>
+          </div>
+        </div>
+
+        <div id="tr-dados" class="hidden">
+          <div style="background:var(--ac-bg);border:1px solid #C0D4FF;border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--ac);margin-bottom:14px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Informe os dados do viajante para cadastro nos aplicativos selecionados.
+          </div>
+          <div class="alert a-bl" style="margin-bottom:10px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
+            Nome, CPF e e-mail serao usados do cadastro acima. Informe apenas o celular para o cadastro no app.
+          </div>
+          <div class="frow"><div class="field" style="max-width:260px"><label class="lbl">Celular <span class="req">*</span></label><input id="tr-cel" placeholder="(11) 99999-9999" maxlength="15" oninput="maskCel(this)"><span class="errmsg" id="etr-cel">Obrigatorio.</span></div></div>
+        </div>
+
+        <div class="field" style="margin-top:4px">
+          <label class="lbl">Necessita de transfer?</label>
+          <div class="rgroup">
+            <label class="ropt"><input type="radio" name="transfer" value="nao" checked onchange="toggleTransfer()"><div class="rbtn"><span class="rdot"></span>Nao</div></label>
+            <label class="ropt"><input type="radio" name="transfer" value="sim" onchange="toggleTransfer()"><div class="rbtn"><span class="rdot"></span>Sim</div></label>
+          </div>
+        </div>
+        <div id="tr-transfer" class="hidden" style="margin-top:12px">
+          <div class="frow"><div class="field"><label class="lbl">Endereco de embarque <span class="req">*</span></label><input id="tr-embarque" placeholder="Ex: Rua das Flores, 123 - Centro, Belo Horizonte"><span class="errmsg" id="etr-embarque">Obrigatorio.</span></div></div>
+          <div class="frow c2">
+            <div class="field"><label class="lbl">Destino do transfer</label><input id="tr-destino" placeholder="Ex: Aeroporto de Confins"></div>
+            <div class="field"><label class="lbl">Data e horario</label><input id="tr-horario" placeholder="Ex: 20/06 as 06:00"></div>
+          </div>
+          <div class="frow"><div class="field"><label class="lbl">Observacoes do transfer</label><input id="tr-obs-transfer" placeholder="Ex: Precisa de van para 3 pessoas com bagagem"></div></div>
+        </div>
+      </div>
+
+      <div id="justif-box" class="hidden"><div class="card" style="border-color:var(--am-bor)"><div class="ctitle" style="color:var(--am)">Justificativa - fora do prazo</div><div class="field"><label class="lbl">Justificativa <span class="req">*</span></label><textarea id="fjustif"></textarea><span class="errmsg" id="ejustif">Obrigatoria.</span></div></div></div>
+      <button class="btn btn-p btn-full" id="btn-submit" onclick="submitForm()" style="margin-top:4px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Enviar requisicao
+      </button>
+    </div>
+
+    <!-- COTACOES (admin) -->
+    <div class="sec" id="sec-cotacoes">
+      <div class="pghdr"><div><div class="pgtitle">Cotacoes</div><div class="pgsub">Cole os orcamentos e envie ao solicitante e aprovador</div></div></div>
+      <div id="cotacoes-list"></div>
+    </div>
+
+    <!-- APROVACOES -->
+    <div class="sec" id="sec-aprovacoes">
+      <div class="pghdr"><div><div class="pgtitle">Aprovacoes</div><div class="pgsub">Solicitacoes pendentes para voce</div></div></div>
+      <div id="aprov-list"></div>
+    </div>
+
+    <!-- AGENCIAS -->
+    <div class="sec" id="sec-agencias">
+      <div class="pghdr"><div><div class="pgtitle">Agencias</div><div class="pgsub">Acesso rapido aos portais</div></div></div>
+      <div id="ag-list"></div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="sec" id="sec-admin">
+      <div class="pghdr"><div><div class="pgtitle">Administracao</div></div></div>
+      <div style="display:flex;gap:2px;border-bottom:1px solid var(--bor);margin-bottom:1.5rem">
+        <div class="ni active" id="admt-usuarios" onclick="admTab('usuarios')">Usuarios</div>
+        <div class="ni" id="admt-aprovadores" onclick="admTab('aprovadores')">Aprovadores</div>
+        <div class="ni" id="admt-agencias" onclick="admTab('agencias')">Agencias</div>
+        <div class="ni" id="admt-regras" onclick="admTab('regras')">Regras / Email</div>
+      </div>
+      <div id="at-usuarios">
+        <div class="card"><div class="ctitle">Cadastrar / Editar usuario</div>
+          <input type="hidden" id="adm-uid">
+          <div class="frow c3">
+            <div class="field"><label class="lbl">Nome <span class="req">*</span></label><input id="adm-unome"></div>
+            <div class="field"><label class="lbl">Login <span class="req">*</span></label><input id="adm-ulogin"></div>
+            <div class="field"><label class="lbl">Perfil</label><select id="adm-utipo"><option value="admin">Administrador</option><option value="aprovador">Aprovador</option><option value="solicitante">Solicitante</option></select></div>
+          </div>
+          <div class="frow c2">
+            <div class="field"><label class="lbl">Cargo</label><input id="adm-ucargo"></div>
+            <div class="field"><label class="lbl">E-mail <span class="req">*</span></label><input type="email" id="adm-uemail" placeholder="email@empresa.com.br"><div class="hint">Obrigatorio para aprovadores receberem notificacoes</div></div>
+          </div>
+          <div class="frow"><div class="field"><label class="lbl">Senha <span class="req">*</span></label>
+            <div class="pwwrap"><input type="password" id="adm-usenha" placeholder="Minimo 6 caracteres"><button class="pwtog" type="button" onclick="togglePw('adm-usenha')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+          </div></div>
+          <div style="display:flex;gap:8px"><button class="btn btn-p btn-sm" onclick="salvarUser()">Salvar usuario</button><button class="btn btn-o btn-sm" onclick="limparUser()">Cancelar</button></div>
+        </div>
+        <div class="card"><div class="ctitle">Usuarios cadastrados</div><div id="adm-utbl"></div></div>
+      </div>
+      <div id="at-aprovadores" class="hidden">
+        <div class="card"><div class="ctitle">Vinculo: classe de lancamento - aprovador</div><div style="font-size:13px;color:var(--tx2);margin-bottom:14px">Pre-seleciona o aprovador ao criar uma requisicao (o solicitante pode alterar).</div><div id="adm-vinculo-list"></div></div>
+      </div>
+      <div id="at-agencias" class="hidden">
+        <div class="card"><div class="ctitle">Cadastrar / Editar agencia</div>
+          <input type="hidden" id="adm-agid">
+          <div class="frow c2">
+            <div class="field"><label class="lbl">Nome <span class="req">*</span></label><input id="adm-agnome"></div>
+            <div class="field"><label class="lbl">Tipo</label><select id="adm-agtipo"><option value="passagem_principal">Passagem - Principal</option><option value="passagem_backup">Passagem - Backup</option><option value="hospedagem">Hospedagem</option></select></div>
+          </div>
+          <div class="frow c2">
+            <div class="field"><label class="lbl">URL do portal</label><input id="adm-agurl" placeholder="https://"></div>
+            <div class="field"><label class="lbl">Login</label><input id="adm-aglogin"></div>
+          </div>
+          <div class="frow c2">
+            <div class="field"><label class="lbl">Senha</label><div class="pwwrap"><input type="password" id="adm-agsenha"><button class="pwtog" type="button" onclick="togglePw('adm-agsenha')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+            <div class="field"><label class="lbl">Contato</label><input id="adm-agcontato"></div>
+          </div>
+          <div class="frow"><div class="field"><label class="lbl">Observacoes</label><input id="adm-agobs"></div></div>
+          <div style="display:flex;gap:8px"><button class="btn btn-p btn-sm" onclick="salvarAg()">Salvar agencia</button><button class="btn btn-o btn-sm" onclick="limparAg()">Cancelar</button></div>
+        </div>
+        <div class="card"><div class="ctitle">Agencias cadastradas</div><div id="adm-agtbl"></div></div>
+      </div>
+      <div id="at-regras" class="hidden">
+        <div class="card"><div class="ctitle">Regras</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--bor)">
+            <div><div style="font-size:13px;font-weight:500">Prazo minimo de antecedencia</div><div class="hint">Dias antes da viagem sem justificativa</div></div>
+            <div style="display:flex;align-items:center;gap:8px"><input type="number" id="cfg-prazo" value="30" style="width:65px;text-align:center;font-weight:600"><span style="font-size:12px;color:var(--tx2)">dias</span></div>
+          </div>
+          <div style="padding-top:12px"><button class="btn btn-p btn-sm" onclick="salvarRegras()">Salvar regras</button></div>
+        </div>
+        <div class="card" style="border-color:#22C55E">
+          <div class="ctitle" style="color:#16A34A">&#9729; Banco de Dados na Nuvem (Supabase)</div>
+          <div class="alert a-gr" style="margin-bottom:1rem">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>Acesse <a href="https://supabase.com" target="_blank" style="color:#16A34A">supabase.com</a> &rarr; Projeto &rarr; Project Settings &rarr; API para obter as credenciais.</div>
+          </div>
+          <div class="frow c2">
+            <div class="field"><label class="lbl">Project URL</label><input id="cfg-sb-url" placeholder="https://xyzxyzxyz.supabase.co"></div>
+            <div class="field"><label class="lbl">Anon / Public Key</label><input id="cfg-sb-key" placeholder="eyJhbGciOi..."></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:4px;flex-wrap:wrap">
+            <button class="btn btn-p btn-sm" style="background:#16A34A" onclick="salvarSupabase()">Salvar e conectar</button>
+            <button class="btn btn-o btn-sm" onclick="testarSupabase()">Testar conexao</button>
+            <span id="sb-status" style="font-size:12px;color:var(--tx3)"></span>
+          </div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bor);font-size:12px;color:var(--tx3)">
+            <strong>Precisa criar a tabela no Supabase?</strong> Va em SQL Editor e execute:<br>
+            <code style="display:block;background:var(--surf3);padding:8px;border-radius:var(--rs);margin-top:6px;font-family:var(--mono);font-size:11px;line-height:1.6">create table if not exists vc_state (<br>
+&nbsp;&nbsp;id text primary key,<br>
+&nbsp;&nbsp;data text,<br>
+&nbsp;&nbsp;updated_at timestamptz default now()<br>
+);<br>
+alter table vc_state enable row level security;<br>
+create policy "Allow all" on vc_state for all using (true) with check (true);</code>
+          </div>
+        </div>
+        <div class="card" style="border-color:#C0D4FF">
+          <div class="ctitle" style="color:var(--ac)">Configuracao de E-mail (EmailJS)</div>
+          <div class="alert a-bl" style="margin-bottom:1rem">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
+            <div>Acesse <a href="https://emailjs.com" target="_blank" style="color:var(--ac)">emailjs.com</a> para obter as credenciais. O template deve ter as variaveis <code style="background:var(--surf3);padding:1px 5px;border-radius:3px">to_email</code>, <code style="background:var(--surf3);padding:1px 5px;border-radius:3px">subject</code> e <code style="background:var(--surf3);padding:1px 5px;border-radius:3px">message</code>.</div>
+          </div>
+          <div class="frow c3">
+            <div class="field"><label class="lbl">Service ID</label><input id="cfg-ejs-svc" placeholder="service_xxxxxxx"></div>
+            <div class="field"><label class="lbl">Template ID</label><input id="cfg-ejs-tpl" placeholder="template_xxxxxxx"></div>
+            <div class="field"><label class="lbl">Public Key</label><input id="cfg-ejs-pub" placeholder="sua_public_key"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:4px;flex-wrap:wrap">
+            <button class="btn btn-p btn-sm" onclick="salvarEmailJS()">Salvar e ativar</button>
+            <button class="btn btn-o btn-sm" onclick="testarEmail()">Enviar e-mail de teste</button>
+            <span id="ejs-status" style="font-size:12px;color:var(--tx3)"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL TROCAR SENHA -->
+<div id="modal-senha" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--surf);border-radius:var(--r);padding:2rem;max-width:400px;width:100%;box-shadow:var(--shm)">
+    <div style="font-size:17px;font-weight:700;margin-bottom:4px">Alterar senha</div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:1.25rem" id="modal-senha-user"></div>
+    <div id="modal-senha-err" style="background:var(--rd-bg);border:1px solid var(--rd-bor);color:var(--rd);border-radius:var(--rs);padding:10px 12px;font-size:13px;margin-bottom:14px;display:none"></div>
+    <div class="field" style="margin-bottom:12px">
+      <label class="lbl">Senha atual <span class="req">*</span></label>
+      <div class="pwwrap">
+        <input type="password" id="senha-atual" placeholder="Digite sua senha atual">
+        <button class="pwtog" type="button" onclick="togglePw('senha-atual')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label class="lbl">Nova senha <span class="req">*</span></label>
+      <div class="pwwrap">
+        <input type="password" id="senha-nova" placeholder="Minimo 6 caracteres">
+        <button class="pwtog" type="button" onclick="togglePw('senha-nova')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:20px">
+      <label class="lbl">Confirmar nova senha <span class="req">*</span></label>
+      <div class="pwwrap">
+        <input type="password" id="senha-conf" placeholder="Repita a nova senha" onkeydown="if(event.key==='Enter')salvarSenha()">
+        <button class="pwtog" type="button" onclick="togglePw('senha-conf')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-o btn-sm" onclick="fecharTrocarSenha()">Cancelar</button>
+      <button class="btn btn-p btn-sm" onclick="salvarSenha()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Salvar senha
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="fecharDrawer()"></div>
+<div class="drawer" id="drawer-sol">
+  <div class="drawer-hdr">
+    <div class="drawer-title" id="drawer-title">Detalhes da solicitacao</div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <button class="btn btn-o btn-sm" id="btn-imprimir" onclick="imprimirSol()" title="Imprimir processo completo" style="padding:6px 12px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir
+      </button>
+      <button class="btn btn-o btn-sm" id="btn-enviar-processo" onclick="abrirEnvioProcesso()" title="Enviar processo por email" style="padding:6px 12px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Enviar
+      </button>
+      <button class="drawer-close" onclick="fecharDrawer()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <!-- Modal envio de email do processo -->
+  <div id="modal-envio-proc" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:10;align-items:center;justify-content:center;padding:1rem">
+    <div style="background:var(--surf);border-radius:var(--r);padding:1.5rem;width:100%;max-width:400px;box-shadow:var(--shm)">
+      <div style="font-size:15px;font-weight:700;margin-bottom:1rem">Enviar processo por e-mail</div>
+      <div class="field" style="margin-bottom:12px">
+        <label class="lbl">E-mail do destinatario <span class="req">*</span></label>
+        <input id="proc-email-dest" type="email" placeholder="destinatario@empresa.com.br">
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label class="lbl">Mensagem adicional (opcional)</label>
+        <textarea id="proc-email-msg" placeholder="Segue o processo completo da solicitacao de viagem..." style="min-height:70px"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-o btn-sm" onclick="document.getElementById('modal-envio-proc').style.display='none'">Cancelar</button>
+        <button class="btn btn-p btn-sm" onclick="enviarProcesso()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Enviar
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="print-area" style="display:none"></div>
+
+<script>
+var SK = 'vc3'; // localStorage fallback key
+
+// ── SUPABASE CONFIG ──────────────────────────────────────────────────────
+// Cole suas credenciais do Supabase abaixo (Project Settings > API)
+var SB_URL = 'https://livqiskpnkelrqydehir.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpdnFpc2twbmtlbHJxeWRlaGlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNjEyNzcsImV4cCI6MjA5NDgzNzI3N30.ZF4TXySLWff5FfAB19gr4l_vO1_AmRlNqezMe0Ou5y0';
+var sb = null;     // Supabase client instance
+
+function sbInit(){
+  if(!SB_URL || !SB_KEY) return false;
+  // Use REST API directly - works with both old (eyJ) and new (sb_publishable) keys
+  sb = {
+    _url: SB_URL,
+    _key: SB_KEY,
+    from: function(table){
+      var self=this;
+      return {
+        upsert: function(data){
+          return fetch(self._url+'/rest/v1/'+table, {
+            method:'POST',
+            headers:{
+              'Content-Type':'application/json',
+              'Authorization':'Bearer '+self._key,
+              'apikey':self._key,
+              'Prefer':'resolution=merge-duplicates'
+            },
+            body:JSON.stringify(data)
+          }).then(function(r){ return r.ok?{error:null}:{error:r.status}; })
+          .catch(function(e){ return {error:e}; });
+        },
+        select: function(cols){
+          return {
+            eq: function(col,val){
+              return {
+                single: function(){
+                  return fetch(self._url+'/rest/v1/'+table+'?'+col+'=eq.'+encodeURIComponent(val)+'&select='+cols, {
+                    headers:{
+                      'Authorization':'Bearer '+self._key,
+                      'apikey':self._key
+                    }
+                  }).then(function(r){ return r.json().then(function(d){
+                    return Array.isArray(d)&&d.length?{data:d[0],error:null}:{data:null,error:'not found'};
+                  }); })
+                  .catch(function(e){ return {data:null,error:e}; });
+                }
+              };
+            }
+          };
+        }
+      };
+    }
+  };
+  console.log('Supabase REST client ready:', SB_URL);
+  return true;
+}
+var EMAIL_ADMIN = ['administrativo@groupsoftware.com.br','roberta.pavesi@groupsoftware.com.br'];
+var EJS_SVC = '', EJS_TPL = '', EJS_PUB = '', EJS_OK = false;
+var CLASSES = {mkt_comercial:'Viagem Mkt ou Comercial',filial_matriz:'Viagem Filial/Matriz',implantacao:'Viagem - Implantacao',produto:'Viagem - Produto (PO/Lider Tecnico)',treinamento_eventos:'Viagem Treinamento ou Eventos - RH'};
+
+var S = {
+  usuarios:[],
+  agencias:[
+    {id:'ag1',nome:'Trip One Travel',tipo:'passagem_principal',url:'',login:'',senha:'',contato:'',obs:'Agencia principal para passagens'},
+    {id:'ag2',nome:'Estacao Turismo',tipo:'hospedagem',url:'',login:'',senha:'',contato:'',obs:'Agencia exclusiva para hospedagem'},
+    {id:'ag3',nome:'Maac Travel',tipo:'passagem_backup',url:'',login:'',senha:'',contato:'',obs:'Backup para passagens'}
+  ],
+  vinculos:{mkt_comercial:'',filial_matriz:'',implantacao:'',produto:'',treinamento_eventos:''},
+  sols:[],
+  regras:{prazo:30}
+};
+var CU = null;
+
+function save(){
+  S._updatedAt = new Date().toISOString();
+  // Always save to localStorage as fallback/cache
+  try{ localStorage.setItem(SK,JSON.stringify(S)); }catch(e){}
+  // Also sync to Supabase if connected
+  if(sb) sbSync();
+}
+
+async function sbSync(retry){
+  if(!sb) return;
+  try{
+    // Remove dados binários grandes antes de enviar ao Supabase (limite ~1MB)
+    var Scopy=JSON.parse(JSON.stringify(S));
+    Scopy.sols=(Scopy.sols||[]).map(function(s){
+      var s2=JSON.parse(JSON.stringify(s));
+      // Remove imagens base64 dos orçamentos
+      if(s2.orcamentos) s2.orcamentos=s2.orcamentos.map(function(o){
+        var o2=JSON.parse(JSON.stringify(o));
+        if(o2.img&&o2.img.length>500) o2.img='';
+        if(o2.hospImg&&o2.hospImg.length>500) o2.hospImg='';
+        return o2;
+      });
+      // Remove dados binários do voucher
+      if(s2.voucherAnexos) s2.voucherAnexos=s2.voucherAnexos.map(function(a){
+        return {nome:a.nome,tipo:a.tipo,desc:a.desc,data:''};
+      });
+      if(s2.voucher&&s2.voucher.length>100) s2.voucher='ok';
+      return s2;
+    });
+    var payload=JSON.stringify(Scopy);
+    var res=await sb.from('vc_state').upsert({id:'main',data:payload,updated_at:new Date().toISOString()});
+    if(res.error){
+      console.warn('Supabase sync error:',res.error);
+      if(!retry){ setTimeout(function(){ sbSync(true); },2000); }
+    } else {
+      console.log('Synced to Supabase OK',new Date().toLocaleTimeString());
+    }
+  }catch(e){
+    console.warn('Supabase sync error:',e);
+    if(!retry){ setTimeout(function(){ sbSync(true); },2000); }
+  }
+}
+
+async function sbLoad(){
+  if(!sb) return false;
+  try{
+    var res = await sb.from('vc_state').select('data').eq('id','main').single();
+    if(res.data && res.data.data){
+      var d = JSON.parse(res.data.data);
+      // Supabase é a fonte de verdade para usuários e agências
+      if(d.usuarios&&d.usuarios.length) S.usuarios=d.usuarios;
+      if(d.agencias&&d.agencias.length) S.agencias=d.agencias;
+      if(d.vinculos) S.vinculos=d.vinculos;
+      if(d.regras) S.regras=d.regras;
+
+      // Para solicitações: mescla local + remoto para não perder nenhuma
+      var localSols = S.sols || [];
+      var remoteSols = d.sols || [];
+
+      // Índice por ID para merge eficiente
+      var merged = {};
+
+      // Primeiro adiciona todos os remotos
+      remoteSols.forEach(function(s){ merged[s.id] = s; });
+
+      // Depois mescla com locais — local prevalece se status for mais avançado
+      var statusOrder = {
+        'rascunho':0,'aguardando_cotacao':1,'cotacao_enviada':2,
+        'aprovado_gestor':3,'reprovado_gestor':3,'aprovado':3,'reprovado':3,
+        'confirmado_admin':4,'devolvido':4,'voucher_enviado':5
+      };
+      localSols.forEach(function(ls){
+        var rs = merged[ls.id];
+        if(!rs){
+          // Solicitação só existe localmente — adiciona
+          merged[ls.id] = ls;
+        } else {
+          // Existe nos dois — usa o de status mais avançado
+          var lo = statusOrder[ls.status]||0;
+          var ro = statusOrder[rs.status]||0;
+          if(lo > ro){
+            // Local mais avançado — preserva dados locais mas mantém sols do remoto
+            merged[ls.id] = ls;
+          } else if(lo === ro){
+            // Mesmo nível — usa o mais recente por timestamp
+            var lt = ls._updatedAt||ls.decEm||ls.adminEm||'';
+            var rt = rs._updatedAt||rs.decEm||rs.adminEm||'';
+            if(lt > rt) merged[ls.id] = ls;
+          }
+          // Se remoto mais avançado, já está em merged
+        }
+      });
+
+      S.sols = Object.values(merged).sort(function(a,b){
+        return (b.id||0)-(a.id||0);
+      });
+
+      console.log('Supabase loaded. Total sols:', S.sols.length, '(remote:', remoteSols.length, 'local:', localSols.length, ')');
+
+      // Salva localmente o estado mesclado
+      try{ localStorage.setItem(SK, JSON.stringify(S)); }catch(e){}
+      return true;
+    }
+    return false;
+  }catch(e){
+    console.warn('sbLoad error:', e);
+    return false;
+  }
+}
+
+function loadLocal(){
+  try{
+    var raw=localStorage.getItem(SK);
+    if(!raw) return;
+    var d=JSON.parse(raw);
+    if(d.usuarios&&d.usuarios.length) S.usuarios=d.usuarios;
+    if(d.agencias&&d.agencias.length) S.agencias=d.agencias;
+    if(d.sols) S.sols=d.sols;
+    if(d.vinculos){ for(var k in d.vinculos) S.vinculos[k]=d.vinculos[k]; }
+    if(d.regras){ for(var k in d.regras) S.regras[k]=d.regras[k]; }
+    if(d.regras&&d.regras.ejs){ EJS_SVC=d.regras.ejs.svc||''; EJS_TPL=d.regras.ejs.tpl||''; EJS_PUB=d.regras.ejs.pub||''; EJS_OK=!!(EJS_SVC&&EJS_TPL&&EJS_PUB); if(EJS_OK){ try{ emailjs.init({publicKey:EJS_PUB}); }catch(e){} } }
+    if(d.regras&&d.regras.supabase){ SB_URL=d.regras.supabase.url||''; SB_KEY=d.regras.supabase.key||''; }
+  }catch(e){}
+}
+
+async function load(){
+  // 1. Load from localStorage first (fast, works offline)
+  loadLocal();
+  // 2. Init Supabase REST client
+  if(SB_URL && SB_KEY){ sbInit(); }
+  // 3. If Supabase connected, sync
+  if(sb){
+    // Primeiro envia dados locais para o Supabase (preserva solicitações locais)
+    if(S.sols && S.sols.length > 0){
+      console.log('Enviando dados locais ao Supabase antes de carregar...');
+      await sbSync();
+      await new Promise(function(r){setTimeout(r,500)});
+    }
+    // Depois baixa e mescla com dados remotos
+    var loaded = await sbLoad();
+    if(!loaded || S.usuarios.length === 0){
+      console.log('Supabase: tentando novamente...');
+      await new Promise(function(r){setTimeout(r,2000)});
+      loaded = await sbLoad();
+    }
+    if(!loaded || S.usuarios.length === 0){
+      await new Promise(function(r){setTimeout(r,3000)});
+      loaded = await sbLoad();
+    }
+    if(!loaded) console.log('Supabase indisponivel, usando dados locais');
+  }
+  // Fallback offline
+  if(S.usuarios.length === 0){
+    S.usuarios = [
+      {id:'admin',login:'admin',senha:'admin123',nome:'Administrador',cargo:'Administrativo',tipo:'admin',email:'administrativo@groupsoftware.com.br'},
+      {id:'heloisa',login:'heloisa',senha:'123456',nome:'Heloisa Rabelo',cargo:'Diretora Backoffice',tipo:'admin',email:'heloisa.rabelo@groupsoftware.com.br'}
+    ];
+    save();
+    console.log('Offline fallback: usuarios padrao criados');
+  }
+  console.log('App ready. Users:', S.usuarios.length, '| Supabase:', sb?'connected':'offline');
+  updAprov();
+}
+
+function toggleTrocarSenhaLogin(){
+  var box=document.getElementById('troca-senha-box');
+  if(!box)return;
+  var visible=box.style.display!=='none';
+  box.style.display=visible?'none':'block';
+  if(!visible){
+    ['tc-login','tc-atual','tc-nova','tc-conf'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    var err=document.getElementById('troca-err'); if(err)err.style.display='none';
+    var ok=document.getElementById('troca-ok'); if(ok)ok.style.display='none';
+    var el=document.getElementById('tc-login'); if(el)el.focus();
+  }
+}
+
+function confirmarTrocaSenha(){
+  var login=document.getElementById('tc-login')?document.getElementById('tc-login').value.trim():'';
+  var atual=document.getElementById('tc-atual')?document.getElementById('tc-atual').value:'';
+  var nova=document.getElementById('tc-nova')?document.getElementById('tc-nova').value:'';
+  var conf=document.getElementById('tc-conf')?document.getElementById('tc-conf').value:'';
+  var err=document.getElementById('troca-err');
+  var ok=document.getElementById('troca-ok');
+
+  function showErr(msg){
+    if(err){err.textContent=msg;err.style.display='block';}
+    if(ok)ok.style.display='none';
+  }
+
+  if(!login||!atual||!nova||!conf){showErr('Preencha todos os campos.');return;}
+  // Find user
+  var u=null;
+  for(var i=0;i<S.usuarios.length;i++){
+    if(S.usuarios[i].login===login&&S.usuarios[i].senha===atual){u=S.usuarios[i];break;}
+  }
+  if(!u){showErr('Login ou senha atual incorretos.');return;}
+  if(nova.length<6){showErr('A nova senha deve ter pelo menos 6 caracteres.');return;}
+  if(nova!==conf){showErr('As senhas nao conferem.');return;}
+  if(nova===atual){showErr('A nova senha deve ser diferente da atual.');return;}
+
+  // Update
+  u.senha=nova;
+  save();
+  if(err)err.style.display='none';
+  if(ok)ok.style.display='block';
+  ['tc-atual','tc-nova','tc-conf'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+}
+
+// ASYNC: load everything (localStorage → Supabase), then unlock the login button
+(function(){
+  var btn=document.getElementById('login-btn');
+  var lerr=document.getElementById('lerr');
+  load().then(function(){
+    console.log('Load complete. Users:', S.usuarios.length);
+  }).catch(function(e){
+    console.warn('Load failed (offline mode):', e);
+  }).finally(function(){
+    if(btn){ btn.disabled=false; btn.textContent='Entrar'; }
+    if(lerr){ lerr.style.display='none'; }
+  });
+  // Atualiza mensagem durante tentativas
+  setTimeout(function(){ if(btn&&btn.disabled) btn.textContent='Conectando...'; }, 2500);
+  setTimeout(function(){ if(btn&&btn.disabled) btn.textContent='Aguarde...'; }, 5500);
+})();
+
+function sendEmail(tos,subj,msg,cb){
+  if(!EJS_OK){ console.log('[EMAIL SIM]',tos,subj); if(cb)cb(false); return; }
+  var ps=tos.map(function(t){ return emailjs.send(EJS_SVC,EJS_TPL,{to_email:t,subject:subj,message:msg}); });
+  Promise.all(ps).then(function(){ if(cb)cb(true); }).catch(function(){ if(cb)cb(false); });
+}
+
+function doLogin(){
+  var l=document.getElementById('lin').value.trim();
+  var s=document.getElementById('lpass').value;
+  var err=document.getElementById('lerr');
+  if(!l||!s){ err.textContent='Preencha usuario e senha.'; err.style.display='block'; return; }
+
+  // Dados já carregados do Supabase antes do botão ser habilitado
+  for(var i=0;i<S.usuarios.length;i++){
+    if(S.usuarios[i].login===l&&S.usuarios[i].senha===s){
+      err.style.display='none';
+      _finalizarLogin(S.usuarios[i]);
+      return;
+    }
+  }
+  err.textContent='Usuario ou senha incorretos.';
+  err.style.display='block';
+}
+
+function _finalizarLogin(u){
+  CU=u;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('sb-nome').textContent=u.nome;
+  document.getElementById('sb-role').textContent=u.cargo||u.tipo;
+  document.getElementById('hoje').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var bn=document.getElementById('btn-nova-hdr');
+  if(bn) bn.classList.toggle('hidden',u.tipo!=='admin'&&u.tipo!=='solicitante');
+  // Mobile setup
+  var isMob=window.innerWidth<=700;
+  var mobBar=document.getElementById('mob-bar');
+  var mobUser=document.getElementById('mob-user');
+  var mainEl=document.getElementById('main-content');
+  if(mobBar) mobBar.style.display=isMob?'flex':'none';
+  if(mobUser) mobUser.textContent=u.nome;
+  if(mainEl&&isMob) mainEl.style.paddingTop='60px';
+  renderNav(); goTo('painel');
+}
+
+function logout(){
+  CU=null;
+  document.getElementById('lin').value='';
+  document.getElementById('lpass').value='';
+  document.getElementById('lerr').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+
+function togglePw(id){ var e=document.getElementById(id); if(e) e.type=e.type==='password'?'text':'password'; }
+
+function renderNav(){
+  var ic=function(p){ return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+p+'</svg>'; };
+  var ni=function(id,icon,lbl,bid){ return '<div class="ni" id="ni-'+id+'" onclick="goTo(\''+id+'\')">'+icon+lbl+(bid?'<span class="nbadge hidden" id="'+bid+'">0</span>':'')+'</div>'; };
+  var h='';
+  h+=ni('painel',ic('<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>'),CU.tipo==='admin'?'Painel Geral':'Minhas Viagens','');
+  if(CU.tipo==='admin'||CU.tipo==='solicitante') h+=ni('nova',ic('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),'Nova Requisicao','');
+  if(CU.tipo==='admin') h+=ni('cotacoes',ic('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'),'Cotacoes','nbadge-cot');
+  if(CU.tipo==='admin'||CU.tipo==='aprovador') h+=ni('aprovacoes',ic('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'),'Aprovacoes','nbadge-aprov');
+  if(CU.tipo==='admin') h+=ni('agencias',ic('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),'Agencias','');
+  if(CU.tipo==='admin'){ h+='<div class="nav-sec">Admin</div>'; h+=ni('admin',ic('<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>'),'Administracao',''); }
+  // Add alterar senha button (visible on mobile bottom bar)
+  h+='<div class="ni" onclick="abrirTrocarSenha()" style="margin-top:auto">'
+    +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+    +'Senha</div>';
+  document.getElementById('nav').innerHTML=h;
+}
+
+function goTo(name){
+  document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('active');});
+  document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('active');});
+  var ni=document.getElementById('ni-'+name); if(ni)ni.classList.add('active');
+  var sec=document.getElementById('sec-'+name); if(sec)sec.classList.add('active');
+  // Update mobile title
+  var titles={painel:'Painel',nova:'Nova Requisicao',cotacoes:'Cotacoes',aprovacoes:'Aprovacoes',agencias:'Agencias',admin:'Administracao'};
+  var mobTitle=document.getElementById('mob-title');
+  if(mobTitle) mobTitle.textContent=titles[name]||'ViagemCorp';
+  // Scroll to top on mobile
+  if(window.innerWidth<=700) window.scrollTo(0,0);
+  if(name==='nova'){ updAprov(); }
+  if(name==='painel')renderPainel();
+  if(name==='cotacoes')renderCotacoes();
+  if(name==='aprovacoes')renderAprovacoes();
+  if(name==='agencias')renderAgencias();
+  if(name==='admin')renderAdmin();
+}
+
+function gr(name){ var e=document.querySelector('input[name="'+name+'"]:checked'); return e?e.value:''; }
+function gv(id){ var e=document.getElementById(id); return e?e.value.trim():''; }
+function fmt(d){ if(!d)return'-'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function diasAte(d){ return Math.round((new Date(d+'T12:00:00')-new Date())/86400000); }
+function prazoMin(){ return (S.regras&&S.regras.prazo)?S.regras.prazo:30; }
+function maskCel(el){
+  var v=el.value.replace(/\D/g,'');
+  if(v.length<=10) v=v.replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{4})(\d)/,'$1-$2');
+  else v=v.replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2');
+  el.value=v;
+}
+
+function toggleTipoViagem(){
+  var tipo=gr('tipovg')||'idavolta';
+  var retWrap=document.getElementById('retorno-wrap');
+  var multWrap=document.getElementById('multitrecho-wrap');
+  var soidaInfo=document.getElementById('soida-info');
+  if(retWrap) retWrap.classList.toggle('hidden', tipo!=='idavolta');
+  if(multWrap) multWrap.classList.toggle('hidden', tipo!=='multitrecho');
+  if(soidaInfo) soidaInfo.classList.toggle('hidden', tipo!=='soida');
+  // Clear volta if not ida/volta
+  if(tipo!=='idavolta'){
+    var fv=document.getElementById('fvolta'); if(fv)fv.value='';
+    var fhv=document.getElementById('fhorvolta'); if(fhv)fhv.value='';
+  }
+}
+
+var _trechoCount=0;
+function addTrecho(){
+  _trechoCount++;
+  var n=_trechoCount;
+  var list=document.getElementById('trechos-list');
+  if(!list)return;
+  var div=document.createElement('div');
+  div.id='trecho-'+n;
+  div.style.cssText='border:1px solid var(--bor);border-radius:var(--rs);padding:.875rem;margin-bottom:10px';
+  div.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+    +'<div style="font-size:12px;font-weight:700;color:var(--ac)">Trecho '+n+'</div>'
+    +'<button type="button" class="btn btn-r btn-sm" onclick="remTrecho('+n+')" style="padding:3px 10px">&#10005; Remover</button>'
+    +'</div>'
+    +'<div class="frow c2" style="margin-bottom:8px">'
+    +'<div class="field"><label class="lbl">Origem</label><input id="trc-orig-'+n+'" placeholder="Ex: Sao Paulo"></div>'
+    +'<div class="field"><label class="lbl">Destino</label><input id="trc-dest-'+n+'" placeholder="Ex: Brasilia"></div>'
+    +'</div>'
+    +'<div class="frow c2">'
+    +'<div class="field"><label class="lbl">Data</label><input type="date" id="trc-data-'+n+'"></div>'
+    +'<div class="field"><label class="lbl">Horario</label><input id="trc-hor-'+n+'" placeholder="Ex: 08:00 as 10:00"></div>'
+    +'</div>';
+  list.appendChild(div);
+}
+
+function remTrecho(n){
+  var el=document.getElementById('trecho-'+n);
+  if(el)el.remove();
+}
+
+function getTrechos(){
+  var trechos=[];
+  var items=document.querySelectorAll('[id^="trecho-"]');
+  items.forEach(function(item){
+    var n=item.id.replace('trecho-','');
+    var orig=document.getElementById('trc-orig-'+n);
+    var dest=document.getElementById('trc-dest-'+n);
+    var data=document.getElementById('trc-data-'+n);
+    var hor=document.getElementById('trc-hor-'+n);
+    if(orig||dest) trechos.push({
+      origem:orig?orig.value:'',
+      destino:dest?dest.value:'',
+      data:data?data.value:'',
+      horario:hor?hor.value:''
+    });
+  });
+  return trechos;
+}
+
+function resetTrechos(){
+  var list=document.getElementById('trechos-list');
+  if(list)list.innerHTML='';
+  _trechoCount=0;
+  var r=document.querySelector('input[name="tipovg"][value="idavolta"]');
+  if(r)r.checked=true;
+  var retWrap=document.getElementById('retorno-wrap');
+  var multWrap=document.getElementById('multitrecho-wrap');
+  var soidaInfo=document.getElementById('soida-info');
+  if(retWrap)retWrap.classList.remove('hidden');
+  if(multWrap)multWrap.classList.add('hidden');
+  if(soidaInfo)soidaInfo.classList.add('hidden');
+}
+
+function toggleTransporte(){
+  var uber=document.getElementById('tr-uber')&&document.getElementById('tr-uber').checked;
+  var n99=document.getElementById('tr-99')&&document.getElementById('tr-99').checked;
+  var wrap=document.getElementById('tr-dados');
+  if(wrap) wrap.classList.toggle('hidden', !uber&&!n99);
+}
+
+function toggleTransfer(){
+  var sim=document.querySelector('input[name="transfer"]:checked');
+  var wrap=document.getElementById('tr-transfer');
+  if(wrap) wrap.classList.toggle('hidden', !sim||sim.value!=='sim');
+}
+
+function getTransporte(){
+  var uber=document.getElementById('tr-uber')&&document.getElementById('tr-uber').checked;
+  var n99=document.getElementById('tr-99')&&document.getElementById('tr-99').checked;
+  var transfer=document.querySelector('input[name="transfer"]:checked');
+  var apps=[];
+  if(uber) apps.push('Uber');
+  if(n99) apps.push('99 Taxi');
+  return {
+    apps: apps,
+    nome: apps.length?gv('fn'):'',
+    cpf: apps.length?gv('fcpf'):'',
+    cel: apps.length?gv('tr-cel'):'',
+    email: apps.length?gv('femail'):'',
+    transfer: transfer?transfer.value:'nao',
+    embarque: gv('tr-embarque'),
+    destino: gv('tr-destino'),
+    horario: gv('tr-horario'),
+    obsTransfer: gv('tr-obs-transfer')
+  };
+}
+
+function validateTransporte(){
+  var t=getTransporte();
+  var ok=true;
+  if(t.apps.length){
+    // Only celular is required now (nome/cpf/email taken from viajante fields above)
+    var flds=[['tr-cel','etr-cel']];
+    flds.forEach(function(f){
+      var el=document.getElementById(f[0]),em=document.getElementById(f[1]);
+      if(!el||!el.value.trim()){ok=false;if(el)el.classList.add('err');if(em)em.classList.add('show');}
+      else{el.classList.remove('err');if(em)em.classList.remove('show');}
+    });
+  }
+  if(t.transfer==='sim'&&!t.embarque){
+    ok=false;
+    var e=document.getElementById('tr-embarque'),em=document.getElementById('etr-embarque');
+    if(e)e.classList.add('err');if(em)em.classList.add('show');
+  } else {
+    var e=document.getElementById('tr-embarque'),em=document.getElementById('etr-embarque');
+    if(e)e.classList.remove('err');if(em)em.classList.remove('show');
+  }
+  return ok;
+}
+
+function resetTransporte(){
+  var u=document.getElementById('tr-uber'); if(u)u.checked=false;
+  var n=document.getElementById('tr-99'); if(n)n.checked=false;
+  var d=document.getElementById('tr-dados'); if(d)d.classList.add('hidden');
+  ['tr-cel','tr-embarque','tr-destino','tr-horario','tr-obs-transfer'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  var tn=document.querySelector('input[name="transfer"][value="nao"]'); if(tn)tn.checked=true;
+  var tw=document.getElementById('tr-transfer'); if(tw)tw.classList.add('hidden');
+}
+
+function maskCPF(el){ var v=el.value.replace(/\D/g,''); v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2'); el.value=v; }
+function toggleRG(){ document.getElementById('rg-wrap').classList.toggle('hidden',gr('tipo')!=='rodoviaria'); }
+function toggleHosp(){ document.getElementById('hosp-wrap').classList.toggle('hidden',gr('hosp')!=='sim'); }
+function checkPrazo(){ var d=gv('fida'); if(!d)return; document.getElementById('alerta-prazo').classList.toggle('hidden',diasAte(d)>=prazoMin()); document.getElementById('justif-box').classList.toggle('hidden',diasAte(d)>=prazoMin()); chkDay(d,'av-ida'); }
+function chkDay(val,id){ if(!val)return; var day=new Date(val+'T12:00:00').getDay(); var e=document.getElementById(id); if(e)e.classList.toggle('hidden',day!==1&&day!==5); }
+
+function updAprov(){
+  var v=gv('fclasse');
+  var sel=document.getElementById('faprovador'); if(!sel)return;
+  // Always load fresh from S.usuarios to catch Supabase-loaded users
+  var aprovs=S.usuarios.filter(function(u){return u.tipo==='aprovador'||u.tipo==='admin';});
+  var sug=v?S.vinculos[v]||'':'';
+  var opts='<option value="">Selecione o aprovador...</option>';
+  if(!aprovs.length){
+    opts+='<option value="" disabled>Nenhum aprovador cadastrado</option>';
+  }
+  aprovs.forEach(function(a){
+    opts+='<option value="'+a.id+'"'+(a.id===sug?' selected':'')+'>'+a.nome+(a.cargo?' ('+a.cargo+')':'')+'</option>';
+  });
+  sel.innerHTML=opts;
+  var d=document.getElementById('aprov-dica');
+  if(d) d.classList.toggle('hidden',!sug);
+  // Show count for debug
+  console.log('updAprov: '+aprovs.length+' aprovadores, classe='+v);
+}
+
+function validate(){
+  var ok=true;
+  var tipo=gr('tipovg')||'idavolta';
+  var flds=[['fn','en'],['fcpf','ecpf'],['fnasc','enasc'],['femail','eemail'],['fpar','epar'],['fdest','edest'],['fida','eida'],['fhorida','ehorida'],['fmotivo','emotivo'],['fclasse','eclasse'],['fcentro','ecentro'],['faprovador','eaprovador']];
+  // Volta obrigatoria somente em ida e volta
+  if(tipo==='idavolta') flds.push(['fvolta','evolta'],['fhorvolta','ehorvolta']);
+  if(gr('tipo')==='rodoviaria') flds.push(['frg','erg']);
+  if(gr('hosp')==='sim') flds.push(['fhosplocal','ehosplocal']);
+  flds.forEach(function(f){ var el=document.getElementById(f[0]),em=document.getElementById(f[1]); if(!el||!el.value.trim()){ok=false;if(el)el.classList.add('err');if(em)em.classList.add('show');}else{el.classList.remove('err');if(em)em.classList.remove('show');} });
+  if(gr('hosp')==='sim'&&!gr('acomo')){ok=false;var e=document.getElementById('eacomo');if(e)e.classList.add('show');}else{var e=document.getElementById('eacomo');if(e)e.classList.remove('show');}
+  if(gv('fida')&&diasAte(gv('fida'))<prazoMin()&&!gv('fjustif')){ok=false;var e=document.getElementById('fjustif');if(e)e.classList.add('err');var em=document.getElementById('ejustif');if(em)em.classList.add('show');}
+  if(!validateTransporte()) ok=false;
+  if(!validateAlim()) ok=false;
+  return ok;
+}
+
+function submitForm(){
+  if(!validate()){var e=document.querySelector('.err');if(e)e.scrollIntoView({behavior:'smooth',block:'center'});return;}
+  var btn=document.getElementById('btn-submit'); btn.disabled=true; btn.textContent='Enviando...';
+  var cls=gv('fclasse');
+  var aprovId=gv('faprovador');
+  var aprov=null; for(var i=0;i<S.usuarios.length;i++){ if(S.usuarios[i].id===aprovId){aprov=S.usuarios[i];break;} }
+  var sol={
+    id:Date.now(), status:'aguardando_cotacao', criadoEm:new Date().toISOString(), criadoPor:CU.id,
+    viajante:gv('fn'), cpf:gv('fcpf'), nasc:gv('fnasc'), emailSolicitante:gv('femail'),
+    tipo:gr('tipo'), rg:gr('tipo')==='rodoviaria'?gv('frg'):'',
+    partida:gv('fpar'), chegada:gv('fdest'),
+    ida:gv('fida'), altIda:gv('faltida'), horIda:gv('fhorida'),
+    volta:gv('fvolta'), horVolta:gv('fhorvolta'),
+    bagagem:gr('bag'), motivo:gv('fmotivo'),
+    classe:cls, classeLabel:CLASSES[cls]||cls,
+    centro:gv('fcentro'), hosp:gr('hosp'),
+    hospLocal:gr('hosp')==='sim'?gv('fhosplocal'):'',
+    acomo:gr('hosp')==='sim'?gr('acomo'):'',
+    obs:gv('fobs'), justif:gv('fjustif'),
+    transporte:getTransporte(),
+    trechos:getTrechos(),
+    tipoViagem:gr('tipovg')||'idavolta',
+    alimentacao:getAlimentacao(),
+    aprovId:aprovId, aprovNome:aprov?aprov.nome:'Nao definido', aprovEmail:aprov?aprov.email||'':'',
+    orcamentos:[], voucher:'', voucherNome:'', decisao:'', decObs:'', decEm:'', decPor:''
+  };
+  S.sols.unshift(sol); save(); resetForm();
+  btn.disabled=false; btn.textContent='Enviar requisicao';
+
+  var nl='\n';
+  var corpo='Nova requisicao de viagem recebida!'+nl+nl
+    +'===================================='+nl
+    +'>>> COTAR: '+(sol.tipo==='aerea'?'PASSAGEM AEREA':'PASSAGEM RODOVIARIA')+' <<<'+nl
+    +'===================================='+nl+nl
+    +'Solicitante: '+sol.viajante+nl
+    +'CPF: '+sol.cpf+nl
+    +'Nascimento: '+fmt(sol.nasc)+nl
+    +'E-mail do viajante: '+sol.emailSolicitante+nl
+    +'Rota: '+sol.partida+' -> '+sol.chegada+nl
+    +'Tipo de passagem: '+(sol.tipo==='aerea'?'Aerea (voo)':'Rodoviaria (onibus)')+nl
+    +(sol.rg?'RG: '+sol.rg+nl:'')
+    +'Ida: '+fmt(sol.ida)+' '+sol.horIda+nl
+    +'Volta: '+fmt(sol.volta)+' '+sol.horVolta+nl
+    +'Hospedagem: '+(sol.hosp==='sim'?'Sim - '+sol.hospLocal+' ('+sol.acomo+')':'Nao')+nl
+    +'Bagagem: '+(sol.bagagem==='sim'?'Sim':'Nao')+nl
+    +'Motivo: '+sol.motivo+nl
+    +'Classe: '+sol.classeLabel+nl
+    +'Centro de custos: '+sol.centro+nl
+    +'Aprovador: '+sol.aprovNome+nl
+    +(sol.justif?'Justificativa (fora do prazo): '+sol.justif+nl:'')
+    +(sol.alimentacao?nl+'=== ALIMENTACAO ==='+nl
+    +'Tipo: '+(sol.alimentacao.tipo==='flash'?'Flash (CLT) - dp@groupsoftware.com.br':'Clara (PJ) - financeiro@groupsoftware.com.br')+nl
+    +'Cidade: '+(sol.alimentacao.cidade==='capital'?'Capital especial (Sao Paulo, Rio de Janeiro, Brasilia, Porto Alegre, Curitiba, Salvador, Recife, Florianopolis)':'Interior/Geral')+nl
+    +'Diaria: '+(sol.alimentacao.diaria==='metade'?'Meia diaria':'Diaria cheia')+nl
+    +'Dias: '+sol.alimentacao.dias+nl
+    +'Valor/dia: R$ '+sol.alimentacao.valorDia.toFixed(2)+nl
+    +'TOTAL: R$ '+sol.alimentacao.total.toLocaleString('pt-BR',{minimumFractionDigits:2})+nl
+    +(sol.alimentacao.obs?'Obs: '+sol.alimentacao.obs+nl:'')
+    :'')
+    +(sol.transporte&&sol.transporte.apps&&sol.transporte.apps.length?nl+'=== TRANSPORTE URBANO ==='+nl+'Aplicativos: '+sol.transporte.apps.join(', ')+nl+'Nome: '+sol.transporte.nome+nl+'CPF: '+sol.transporte.cpf+nl+'Celular: '+sol.transporte.cel+nl+'E-mail: '+sol.transporte.email+nl:'')
+    +(sol.transporte&&sol.transporte.transfer==='sim'?'Transfer: SIM'+nl+'Embarque: '+sol.transporte.embarque+(sol.transporte.destino?' -> '+sol.transporte.destino:'')+nl+(sol.transporte.horario?'Horario: '+sol.transporte.horario+nl:'')+(sol.transporte.obsTransfer?'Obs transfer: '+sol.transporte.obsTransfer+nl:''):'')
+    +nl+'Acesse o ViagemCorp, va em Cotacoes e cole os orcamentos para enviar ao solicitante.';
+
+  sendEmail(EMAIL_ADMIN,'Nova Requisicao de Viagem ['+(sol.tipo==='aerea'?'AEREO':'RODOVIARIO')+'] - '+sol.viajante+' | '+sol.partida+' -> '+sol.chegada,corpo,function(ok){
+    badge();
+    toast(ok?'Requisicao enviada! Email disparado para area administrativa.':'Requisicao criada! Configure o EmailJS em Administracao > Regras para ativar o envio de emails.');
+  });
+  goTo('painel');
+}
+
+function resetForm(){
+  ['fn','fcpf','fnasc','femail','frg','fpar','fdest','fida','faltida','fhorida','fvolta','fhorvolta','fmotivo','fobs','fjustif','fhosplocal'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  ['fclasse','fcentro','faprovador'].forEach(function(id){var e=document.getElementById(id);if(e)e.selectedIndex=0;});
+  var ea=document.querySelector('input[name="tipo"][value="aerea"]'); if(ea)ea.checked=true;
+  var en2=document.querySelector('input[name="bag"][value="nao"]'); if(en2)en2.checked=true;
+  var hn=document.querySelector('input[name="hosp"][value="nao"]'); if(hn)hn.checked=true;
+  document.querySelectorAll('input[name="acomo"]').forEach(function(e){e.checked=false;});
+  ['rg-wrap','hosp-wrap','alerta-prazo','justif-box','aprov-dica'].forEach(function(id){var e=document.getElementById(id);if(e)e.classList.add('hidden');});
+  resetTransporte();
+  resetAlim();
+}
+
+function renderCotacoes(){
+  var lista=S.sols.filter(function(s){return s.status==='aguardando_cotacao'||s.status==='cotacao_enviada';});
+  var el=document.getElementById('cotacoes-list');
+  if(!lista.length){el.innerHTML='<div style="color:var(--tx3);padding:40px 0;text-align:center;font-size:13px;background:var(--surf);border-radius:var(--r);border:1px solid var(--bor)">Nenhuma cotacao pendente.</div>';return;}
+
+  function dropZone(sid,idx,tp,existingData,existingFname,existingIsPdf){
+    var dropId='idrop-'+sid+'-'+idx+'-'+tp;
+    var inpId='iinp-'+sid+'-'+idx+'-'+tp;
+    var inner;
+    if(existingData){
+      if(existingIsPdf){
+        inner='<div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px">'
+          +'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>'
+          +'<div style="font-size:11px;font-weight:600;color:var(--tx)">'+esc(existingFname||'arquivo.pdf')+'</div>'
+          +'<div style="font-size:10px;color:var(--tx3)">Clique para trocar</div></div>';
+      } else {
+        inner='<img src="'+existingData+'" style="max-height:100px;max-width:100%;border-radius:4px"><div style="font-size:10px;color:var(--tx3);margin-top:3px">Clique para trocar</div>';
+      }
+    } else {
+      inner='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
+        +'<span style="font-size:11px;color:var(--tx3)">Clique, Ctrl+V ou arraste<br><span style="font-size:10px">Imagem ou PDF</span></span>';
+    }
+    var dataAttr=existingData?(' data-img="'+existingData+'" data-fname="'+esc(existingFname||'')+'" data-ispdf="'+(existingIsPdf?'1':'0')+'"'):'';
+    return '<div class="img-drop" id="'+dropId+'" onclick="clkImg(\''+sid+'\','+idx+',\''+tp+'\')" style="position:relative"'+dataAttr+'>'+inner+'</div>'
+      +'<input type="file" id="'+inpId+'" accept="image/*,application/pdf" style="display:none" onchange="imgFile(this,\''+sid+'\','+idx+',\''+tp+'\')">';
+  }
+
+  el.innerHTML=lista.map(function(s){
+    var prazo=s.ida&&diasAte(s.ida)<prazoMin();
+    var N=3; // 3 opcoes de passagem, 3 de hospedagem
+
+    // --- PASSAGENS ---
+    var passSlots='';
+    for(var i=0;i<N;i++){
+      var o=(s.orcamentos&&s.orcamentos[i])?s.orcamentos[i]:{};
+      passSlots+='<div style="border:1px solid var(--bor);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:10px">'
+        +'<div style="font-size:11px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Opcao '+(i+1)+(i===0?' — Principal':i===1?' — Alternativa':' — Opcional')+'</div>'
+        +'<div class="frow c2" style="margin-bottom:8px">'
+        +'<div class="field"><label class="lbl">Descricao</label><input id="orc-desc-'+s.id+'-'+i+'" placeholder="Ex: LATAM voo 1234, 7h30/17h45" value="'+esc(o.desc||'')+'"></div>'
+        +'<div class="field"><label class="lbl">Valor (R$)</label><input id="orc-val-'+s.id+'-'+i+'" placeholder="Ex: 833,33" value="'+esc(o.valor||'')+'"></div>'
+        +'</div>'
+        +'<div class="field" style="margin-bottom:6px"><label class="lbl">Print ou PDF do orcamento</label>'
+        +dropZone(s.id,i,'pass',o.img||'',o.imgFname||'',o.imgIsPdf||false)
+        +'</div>'
+        +'<div class="field"><label class="lbl">Observacao</label><textarea id="orc-obs-'+s.id+'-'+i+'" placeholder="Condicoes, validade, bagagem incluida, etc..." style="min-height:50px">'+esc(o.obs||'')+'</textarea></div>'
+        +'</div>';
+    }
+
+    // --- HOSPEDAGENS ---
+    var hospSlots='';
+    if(s.hosp==='sim'){
+      for(var j=0;j<N;j++){
+        var h=(s.orcamentos&&s.orcamentos[j])?s.orcamentos[j]:{};
+        hospSlots+='<div style="border:1px solid var(--bor);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:10px">'
+          +'<div style="font-size:11px;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Hospedagem '+(j+1)+(j===0?' — Principal':j===1?' — Alternativa':' — Opcional')+'</div>'
+          +'<div class="frow c2" style="margin-bottom:8px">'
+          +'<div class="field"><label class="lbl">Hotel / local</label><input id="orc-hospdesc-'+s.id+'-'+j+'" placeholder="Ex: Ville Celestine, quarto single" value="'+esc(h.hospDesc||'')+'"></div>'
+          +'<div class="field"><label class="lbl">Valor total (R$)</label><input id="orc-hospval-'+s.id+'-'+j+'" placeholder="Ex: 1.572,92" value="'+esc(h.hospValor||'')+'"></div>'
+          +'</div>'
+          +'<div class="field" style="margin-bottom:6px"><label class="lbl">Print ou PDF do orcamento</label>'
+          +dropZone(s.id,j,'hosp',h.hospImg||'',h.hospImgFname||'',h.hospImgIsPdf||false)
+          +'</div>'
+          +'<div class="field"><label class="lbl">Observacao hospedagem</label><textarea id="orc-hospobs-'+s.id+'-'+j+'" placeholder="Distancia, inclui cafe, tarifa com ISS, etc..." style="min-height:50px">'+esc(h.hospObs||'')+'</textarea></div>'
+          +'</div>';
+      }
+    }
+
+    return '<div class="card">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:8px">'
+      +'<div><div style="font-size:17px;font-weight:700">'+esc(s.viajante)+' &rarr; '+esc(s.chegada)+'</div>'
+      +'<div style="font-size:12px;color:var(--tx2)">'+fmt(s.ida)+' &rarr; '+fmt(s.volta)+' &middot; '+esc(s.classeLabel)+'</div>'
+      +'<div style="font-size:12px;color:var(--tx2)">Solicitante: '+esc(s.emailSolicitante||'-')+' &middot; Aprovador: '+esc(s.aprovNome)+'</div>'
+      +(s.hosp==='sim'?'<div style="font-size:12px;color:var(--gr);font-weight:600">Inclui hospedagem: '+esc(s.hospLocal)+'</div>':'')
+      +'</div>'+(prazo?'<span class="badge b-rd">Fora do prazo</span>':'<span class="badge b-gr">No prazo</span>')+'</div>'
+      +'<div style="font-size:13px;color:var(--tx2);margin-bottom:1rem">Motivo: '+esc(s.motivo)+'</div>'
+      +(s.status==='cotacao_enviada'?'<div class="alert a-gr" style="margin-bottom:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Cotacoes ja enviadas. Reenvie para atualizar.</div>':'')
+      +'<div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bor)">&#9992; Opcoes de Passagem / Transporte</div>'
+      +passSlots
+      +(s.hosp==='sim'
+        ?'<div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px;margin:16px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--bor)">&#127968; Opcoes de Hospedagem</div>'+hospSlots
+        :'')
+      +'<div style="display:flex;justify-content:flex-end;margin-top:12px">'
+      +'<button class="btn btn-p" onclick="enviarOrc('+s.id+')">'
+      +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'
+      +(s.status==='cotacao_enviada'?'Reenviar cotacoes':'Enviar cotacoes ao solicitante e aprovador')
+      +'</button></div></div>';
+  }).join('');
+
+  // Attach paste/drag events for all drop zones
+  lista.forEach(function(s){
+    for(var i=0;i<3;i++){
+      ['pass','hosp'].forEach(function(tp){
+        (function(sid,idx,type){
+          var d=document.getElementById('idrop-'+sid+'-'+idx+'-'+type);
+          if(!d)return;
+          d.addEventListener('paste',function(e){imgPaste(e,sid,idx,type);});
+          d.addEventListener('dragover',function(e){e.preventDefault();d.style.borderColor='var(--ac)';});
+          d.addEventListener('dragleave',function(){d.style.borderColor='';});
+          d.addEventListener('drop',function(e){
+            e.preventDefault();d.style.borderColor='';
+            if(e.dataTransfer.files[0])imgLoad(e.dataTransfer.files[0],sid,idx,type);
+          });
+        })(s.id,i,tp);
+      });
+    }
+  });
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function clkImg(sid,idx,tp){ var e=document.getElementById('iinp-'+sid+'-'+idx+'-'+tp); if(e)e.click(); }
+function imgFile(inp,sid,idx,tp){ if(inp.files&&inp.files[0])imgLoad(inp.files[0],sid,idx,tp||'pass'); }
+function imgPaste(e,sid,idx,tp){ var its=e.clipboardData&&e.clipboardData.items; if(!its)return; for(var i=0;i<its.length;i++){if(its[i].type.indexOf('image')>=0){e.preventDefault();imgLoad(its[i].getAsFile(),sid,idx,tp||'pass');return;}} }
+function imgLoad(file,sid,idx,tp){
+  var r=new FileReader();
+  r.onload=function(ev){
+    var data=ev.target.result;
+    var isPdf=file.type==='application/pdf';
+    imgSet(sid,idx,data,tp||'pass',file.name,isPdf);
+  };
+  r.readAsDataURL(file);
+}
+function imgSet(sid,idx,data,tp,fname,isPdf){
+  var d=document.getElementById('idrop-'+sid+'-'+idx+'-'+tp);
+  if(!d)return;
+  var preview;
+  if(isPdf){
+    preview='<div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px">'
+      +'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/><polyline points="9 9 10 9"/></svg>'
+      +'<div style="font-size:12px;font-weight:600;color:var(--tx)">'+esc(fname||'arquivo.pdf')+'</div>'
+      +'<div style="font-size:11px;color:var(--tx3)">PDF anexado — clique para trocar</div></div>';
+  } else {
+    preview='<img src="'+data+'" style="max-height:120px;max-width:100%;border-radius:4px"><div style="font-size:11px;color:var(--tx3);margin-top:4px">Clique para trocar</div>';
+  }
+  d.innerHTML=preview;
+  d.setAttribute('data-img',data);
+  d.setAttribute('data-fname',fname||'');
+  d.setAttribute('data-ispdf',isPdf?'1':'0');
+}
+
+function enviarOrc(solId){
+  var sol=null; for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol)return;
+  var N=3;
+  var orcs=[];
+  for(var i=0;i<N;i++){
+    var desc=gv('orc-desc-'+solId+'-'+i);
+    var val=gv('orc-val-'+solId+'-'+i);
+    var pd=document.getElementById('idrop-'+solId+'-'+i+'-pass');
+    var img=pd?pd.getAttribute('data-img')||'':'';
+    var imgFname=pd?pd.getAttribute('data-fname')||'':'';
+    var imgIsPdf=pd?pd.getAttribute('data-ispdf')==='1':false;
+    var obs=gv('orc-obs-'+solId+'-'+i);
+    var hospDesc=gv('orc-hospdesc-'+solId+'-'+i);
+    var hospVal=gv('orc-hospval-'+solId+'-'+i);
+    var hd=document.getElementById('idrop-'+solId+'-'+i+'-hosp');
+    var hospImg=hd?hd.getAttribute('data-img')||'':'';
+    var hospImgFname=hd?hd.getAttribute('data-fname')||'':'';
+    var hospImgIsPdf=hd?hd.getAttribute('data-ispdf')==='1':false;
+    var hospObs=gv('orc-hospobs-'+solId+'-'+i);
+    if(desc||val||img||hospDesc||hospVal||hospImg)
+      orcs.push({desc:desc,valor:val,img:img,imgFname:imgFname,imgIsPdf:imgIsPdf,obs:obs,
+                 hospDesc:hospDesc,hospValor:hospVal,hospImg:hospImg,hospImgFname:hospImgFname,hospImgIsPdf:hospImgIsPdf,hospObs:hospObs});
+  }
+  if(!orcs.length){toast('Adicione pelo menos uma cotacao antes de enviar.');return;}
+  sol.orcamentos=orcs; sol.status='cotacao_enviada'; save();
+  var nl='\n';
+  var linhas=orcs.map(function(o,i){
+    var txt='== Opcao '+(i+1)+' =='+nl;
+    txt+='Passagem: '+o.desc+(o.valor?' - R$ '+o.valor:'')+nl;
+    if(o.obs) txt+='Obs: '+o.obs+nl;
+    if(o.hospDesc||o.hospValor) txt+='Hospedagem: '+o.hospDesc+(o.hospValor?' - R$ '+o.hospValor:'')+nl;
+    if(o.hospObs) txt+='Obs hospedagem: '+o.hospObs+nl;
+    return txt;
+  }).join(nl);
+  var corpo='Cotacoes de viagem disponiveis para aprovacao:'+nl+nl
+    +'Viajante: '+sol.viajante+nl
+    +'Rota: '+sol.partida+' -> '+sol.chegada+nl
+    +'Ida: '+fmt(sol.ida)+' '+sol.horIda+nl
+    +'Volta: '+fmt(sol.volta)+' '+sol.horVolta+nl
+    +'Hospedagem: '+(sol.hosp==='sim'?'Sim - '+sol.hospLocal:'Nao')+nl
+    +'Bagagem: '+(sol.bagagem==='sim'?'Sim':'Nao')+nl+nl
+    +'--- ORCAMENTOS ---'+nl+linhas+nl
+    +'Acesse o ViagemCorp para aprovar ou recusar esta viagem.';
+  var dests=[sol.emailSolicitante,sol.aprovEmail].filter(function(e){return e&&e.trim();});
+  if(!dests.length){toast('Nenhum e-mail de destino. Verifique o e-mail do solicitante e do aprovador.');return;}
+  sendEmail(dests,'Cotacoes de Viagem - '+sol.viajante+' | '+sol.partida+' -> '+sol.chegada,corpo,function(ok){
+    badge(); renderCotacoes();
+    toast(ok?'Cotacoes enviadas para '+dests.join(' e ')+'!':'Cotacoes salvas (EmailJS nao configurado).');
+  });
+}
+
+function renderAprovacoes(){
+  var lista=S.sols.filter(function(s){return (s.status==='cotacao_enviada')&&podeAprovar(s);});
+  var el=document.getElementById('aprov-list');
+  if(!lista.length){el.innerHTML='<div style="color:var(--tx3);padding:40px 0;text-align:center;font-size:13px;background:var(--surf);border-radius:var(--r);border:1px solid var(--bor)">Nenhuma solicitacao pendente para voce.</div>';return;}
+  el.innerHTML=lista.map(function(s){
+    var prazo=s.ida&&diasAte(s.ida)<prazoMin();
+
+    // --- PASSAGENS para aprovar ---
+    var passOpts='';
+    if(s.orcamentos&&s.orcamentos.length){
+      var temPass=s.orcamentos.some(function(o){return o.desc||o.valor||o.img;});
+      if(temPass){
+        passOpts='<div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--bor)">&#9992; Selecione a passagem aprovada</div>';
+        passOpts+=s.orcamentos.map(function(o,i){
+          if(!o.desc&&!o.valor&&!o.img) return '';
+          var isPdf=o.imgIsPdf;
+          var rid='apv-pass-'+s.id+'-'+i;
+          return '<label id="lbl-'+rid+'" onclick="highlightOpt(\'apv-pass-'+s.id+'\')" style="display:block;border:2px solid var(--bor);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:8px;cursor:pointer;transition:border-color .15s,background .15s">'
+            +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+            +'<input type="radio" name="apv-pass-'+s.id+'" id="'+rid+'" value="'+i+'" style="width:16px;height:16px;accent-color:var(--ac);flex-shrink:0" onchange="highlightOpt(\'apv-pass-'+s.id+'\')">'
+            +'<span style="font-size:12px;font-weight:700;color:var(--ac)">Opcao '+(i+1)+(i===0?' — Principal':i===1?' — Alternativa':' — Opcional')+'</span>'
+            +'</div>'
+            +'<div style="font-size:14px;font-weight:600;margin-bottom:4px">'+esc(o.desc)+'</div>'
+            +(o.valor?'<div style="font-size:13px;color:var(--ac);font-weight:700;margin-bottom:4px">R$ '+esc(o.valor)+'</div>':'')
+            +(o.obs?'<div style="font-size:12px;color:var(--tx2);margin-bottom:6px">'+esc(o.obs)+'</div>':'')
+            +(o.img
+              ? (isPdf
+                  ? '<button onclick="event.stopPropagation();openPdf(\''+o.img+'\')" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--rd-bg);border:1px solid var(--rd-bor);border-radius:4px;font-size:12px;color:var(--rd);font-weight:600;cursor:pointer">'
+                    +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+                    +esc(o.imgFname||'orcamento.pdf')+' <span style="font-size:10px;opacity:.7">&#8599; abrir</span></button>'
+                  : '<img src="'+o.img+'" style="max-height:160px;max-width:100%;border-radius:4px;border:1px solid var(--bor)">'
+                )
+              : '')
+            +'</label>';
+        }).join('');
+      }
+    }
+
+    // --- HOSPEDAGENS para aprovar ---
+    var hospOpts='';
+    if(s.hosp==='sim'&&s.orcamentos&&s.orcamentos.length){
+      var temHosp=s.orcamentos.some(function(o){return o.hospDesc||o.hospValor||o.hospImg;});
+      if(temHosp){
+        hospOpts='<div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--bor)">&#127968; Selecione a hospedagem aprovada</div>';
+        hospOpts+=s.orcamentos.map(function(o,i){
+          if(!o.hospDesc&&!o.hospValor&&!o.hospImg) return '';
+          var isPdf=o.hospImgIsPdf;
+          var rid='apv-hosp-'+s.id+'-'+i;
+          return '<label id="lbl-'+rid+'" onclick="highlightOpt(\'apv-hosp-'+s.id+'\')" style="display:block;border:2px solid var(--bor);border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:8px;cursor:pointer;transition:border-color .15s,background .15s">'
+            +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+            +'<input type="radio" name="apv-hosp-'+s.id+'" id="'+rid+'" value="'+i+'" style="width:16px;height:16px;accent-color:var(--gr);flex-shrink:0" onchange="highlightOpt(\'apv-hosp-'+s.id+'\')">'
+            +'<span style="font-size:12px;font-weight:700;color:var(--gr)">Hospedagem '+(i+1)+(i===0?' — Principal':i===1?' — Alternativa':' — Opcional')+'</span>'
+            +'</div>'
+            +'<div style="font-size:14px;font-weight:600;margin-bottom:4px">'+esc(o.hospDesc)+'</div>'
+            +(o.hospValor?'<div style="font-size:13px;color:var(--gr);font-weight:700;margin-bottom:4px">R$ '+esc(o.hospValor)+'</div>':'')
+            +(o.hospObs?'<div style="font-size:12px;color:var(--tx2);margin-bottom:6px">'+esc(o.hospObs)+'</div>':'')
+            +(o.hospImg
+              ? (isPdf
+                  ? '<button onclick="event.stopPropagation();openPdf(\''+o.hospImg+'\')" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--rd-bg);border:1px solid var(--rd-bor);border-radius:4px;font-size:12px;color:var(--rd);font-weight:600;cursor:pointer">'
+                    +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+                    +esc(o.hospImgFname||'orcamento.pdf')+' <span style="font-size:10px;opacity:.7">&#8599; abrir</span></button>'
+                  : '<img src="'+o.hospImg+'" style="max-height:160px;max-width:100%;border-radius:4px;border:1px solid var(--bor)">'
+                )
+              : '')
+            +'</label>';
+        }).join('');
+      }
+    }
+
+    return '<div class="card" id="ac-'+s.id+'">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:6px">'
+      +'<div><div style="font-size:17px;font-weight:700">'+esc(s.viajante)+' &rarr; '+esc(s.chegada)+'</div>'
+      +'<div style="font-size:12px;color:var(--tx2)">'+fmt(s.ida)+' &rarr; '+fmt(s.volta)+' &middot; '+esc(s.classeLabel)+' &middot; '+esc(s.centro)+'</div></div>'
+      +(prazo?'<span class="badge b-rd">Fora do prazo</span>':'<span class="badge b-gr">No prazo</span>')+'</div>'
+      +'<div class="asum" style="margin:14px 0">'
+      +'<div class="asrow"><div class="asl">Viajante</div><div class="asv">'+esc(s.viajante)+' &middot; '+esc(s.cpf)+'</div></div>'
+      +'<div class="asrow"><div class="asl">Nascimento</div><div class="asv">'+esc(s.nasc?fmt(s.nasc):'-')+'</div></div>'
+      +'<div class="asrow"><div class="asl">E-mail do viajante</div><div class="asv">'+esc(s.emailSolicitante||'-')+'</div></div>'
+      +'<div class="asrow"><div class="asl">Rota</div><div class="asv">'+esc(s.partida)+' &rarr; '+esc(s.chegada)+'</div></div>'
+      +'<div class="asrow"><div class="asl">Datas</div><div class="asv">Ida '+fmt(s.ida)+' '+esc(s.horIda)+' &middot; Volta '+fmt(s.volta)+' '+esc(s.horVolta)+'</div></div>'
+      +'<div class="asrow"><div class="asl">Bagagem</div><div class="asv">'+(s.bagagem==='sim'?'Sim':'Nao')+'</div></div>'
+      +'<div class="asrow"><div class="asl">Hospedagem</div><div class="asv">'+(s.hosp==='sim'?'Sim - '+esc(s.hospLocal)+' ('+esc(s.acomo)+')':'Nao')+'</div></div>'
+      +'<div class="asrow"><div class="asl">Motivo</div><div class="asv">'+esc(s.motivo)+'</div></div>'
+      +(s.justif?'<div class="asrow" style="background:var(--am-bg)"><div class="asl" style="color:var(--am)">Justificativa</div><div class="asv" style="color:var(--am)">'+esc(s.justif)+'</div></div>':'')
+      +'</div>'
+      +passOpts+hospOpts
+      +'<div class="field" style="margin:14px 0 12px"><label class="lbl">Observacao adicional</label><textarea id="obs-'+s.id+'" placeholder="Instrucoes adicionais para a area administrativa..." style="min-height:70px"></textarea></div>'
+      +'<div style="display:flex;gap:10px;justify-content:flex-end">'
+      +'<button class="btn btn-r btn-sm" onclick="decidir('+s.id+',\'reprovado\')">&#10005; Reprovar</button>'
+      +'<button class="btn btn-g btn-sm" onclick="decidir('+s.id+',\'aprovado\')">&#10003; Aprovar selecionado</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function openPdf(b64){
+  try{
+    var bin=atob(b64.split(',')[1]);
+    var arr=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+    var blob=new Blob([arr],{type:'application/pdf'});
+    var url=URL.createObjectURL(blob);
+    window.open(url,'_blank');
+  }catch(e){ alert('Nao foi possivel abrir o PDF.'); }
+}
+
+function highlightOpt(name){
+  var isHosp=name.indexOf('hosp')>=0;
+  var col=isHosp?'var(--gr)':'var(--ac)';
+  var bg=isHosp?'var(--gr-bg)':'var(--ac-bg)';
+  var inputs=document.querySelectorAll('input[name="'+name+'"]');
+  inputs.forEach(function(inp){
+    var lbl=document.getElementById('lbl-'+inp.id);
+    if(!lbl)return;
+    lbl.style.borderColor=inp.checked?col:'var(--bor)';
+    lbl.style.background=inp.checked?bg:'';
+  });
+}
+
+function decidir(solId,decisao){
+  var sol=null; for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol)return;
+
+  // Lê passagem selecionada
+  var passIdx=-1;
+  var passInputs=document.querySelectorAll('input[name="apv-pass-'+solId+'"]');
+  passInputs.forEach(function(inp){if(inp.checked)passIdx=parseInt(inp.value);});
+
+  // Lê hospedagem selecionada
+  var hospIdx=-1;
+  var hospInputs=document.querySelectorAll('input[name="apv-hosp-'+solId+'"]');
+  hospInputs.forEach(function(inp){if(inp.checked)hospIdx=parseInt(inp.value);});
+
+  // Validação: aprovação requer pelo menos passagem selecionada
+  if(decisao==='aprovado'){
+    var temPass=sol.orcamentos&&sol.orcamentos.some(function(o){return o.desc||o.valor||o.img;});
+    if(temPass&&passIdx<0){
+      toast('Selecione uma opcao de passagem para aprovar.');return;
+    }
+    if(sol.hosp==='sim'){
+      var temHosp=sol.orcamentos&&sol.orcamentos.some(function(o){return o.hospDesc||o.hospValor||o.hospImg;});
+      if(temHosp&&hospIdx<0){
+        toast('Selecione uma opcao de hospedagem para aprovar.');return;
+      }
+    }
+  }
+
+  var obsEl=document.getElementById('obs-'+solId);
+  var obs=obsEl?obsEl.value.trim():'';
+  if(obsEl)obsEl.classList.remove('err');
+
+  // Salva decisão com opções selecionadas
+  sol.decisao=decisao;
+  sol.status=decisao==='aprovado'?'aprovado_gestor':'reprovado_gestor';
+  sol.decObs=obs; sol.decEm=new Date().toISOString(); sol.decPor=CU.id;
+  sol.passagemAprovadaIdx=passIdx;
+  sol.hospedagemAprovadaIdx=hospIdx;
+
+  // Monta resumo das opções aprovadas para o email
+  var nl='\n';
+  var passAprov=passIdx>=0&&sol.orcamentos&&sol.orcamentos[passIdx]?sol.orcamentos[passIdx]:null;
+  var hospAprov=hospIdx>=0&&sol.orcamentos&&sol.orcamentos[hospIdx]?sol.orcamentos[hospIdx]:null;
+
+  var resumoAprov='';
+  if(passAprov){
+    resumoAprov+=nl+'=== PASSAGEM / TRANSPORTE APROVADO ==='
+      +nl+'Opcao: '+(passIdx+1)
+      +nl+'Descricao: '+passAprov.desc
+      +(passAprov.valor?nl+'Valor: R$ '+passAprov.valor:'')
+      +nl+'Horario ida: '+sol.horIda
+      +nl+'Horario volta: '+sol.horVolta
+      +(passAprov.obs?nl+'Obs: '+passAprov.obs:'');
+  }
+  if(hospAprov&&(hospAprov.hospDesc||hospAprov.hospValor)){
+    resumoAprov+=nl+nl+'=== HOSPEDAGEM APROVADA ==='
+      +nl+'Opcao: '+(hospIdx+1)
+      +nl+'Hotel: '+hospAprov.hospDesc
+      +(hospAprov.hospValor?nl+'Valor: R$ '+hospAprov.hospValor:'')
+      +(hospAprov.hospObs?nl+'Obs: '+hospAprov.hospObs:'');
+  }
+
+  save();
+  var corpo='Viagem '+(decisao==='aprovado'?'APROVADA pelo gestor — aguardando confirmacao administrativa':'REPROVADA pelo gestor')+' por '+CU.nome+'.'+nl+nl
+    +'Viajante: '+sol.viajante+nl
+    +'Rota: '+sol.partida+' -> '+sol.chegada+nl
+    +'Datas: '+fmt(sol.ida)+' -> '+fmt(sol.volta)+nl
+    +'Classe: '+sol.classeLabel
+    +resumoAprov
+    +(obs?nl+nl+'Observacao: '+obs:'')
+    +nl+nl+(decisao==='aprovado'?'Realize a compra e confirme no sistema para liberar o adiantamento de alimentacao.':'O solicitante sera notificado para revisar o pedido.');
+
+  sendEmail(EMAIL_ADMIN,(decisao==='aprovado'?'[APROVADO GESTOR]':'[REPROVADO]')+' Viagem '+sol.viajante+' | '+sol.partida+' -> '+sol.chegada,corpo,function(ok){
+    renderAprovacoes(); renderPainel(); badge();
+    toast(decisao==='aprovado'?'Aprovado! Administrativo deve confirmar a compra.':'Reprovado. Solicitante pode editar o pedido.');
+  });
+
+  // Notifica solicitante se reprovado pelo gestor
+  if(decisao==='reprovado'){
+    var emailSol=sol.emailSolicitante;
+    if(emailSol){
+      var corpoSol='Sua solicitacao de viagem foi reprovada pelo gestor e esta disponivel para edicao.'+nl+nl
+        +'Viajante: '+sol.viajante+nl+'Rota: '+sol.partida+' -> '+sol.chegada+nl
+        +(obs?'Motivo: '+obs+nl:'')
+        +nl+'Acesse o ViagemCorp, localize a viagem no Painel e clique em "Editar" para revisar e reenviar.';
+      sendEmail([emailSol],'[REVISAR] Sua solicitacao de viagem precisa de ajustes',corpoSol,function(){});
+    }
+  }
+}
+
+function confirmarAdmin(solId){
+  var sol=null; for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol)return;
+  var obsEl=document.getElementById('adm-obs-'+solId);
+  var obs=obsEl?obsEl.value.trim():'';
+  sol.status='confirmado_admin'; sol.adminObs=obs; sol.adminEm=new Date().toISOString(); sol.adminPor=CU.id;
+  save();
+  var passIdx=sol.passagemAprovadaIdx;
+  var hospIdx=sol.hospedagemAprovadaIdx;
+  var passAprov=passIdx>=0&&sol.orcamentos&&sol.orcamentos[passIdx]?sol.orcamentos[passIdx]:null;
+  var hospAprov=hospIdx>=0&&sol.orcamentos&&sol.orcamentos[hospIdx]?sol.orcamentos[hospIdx]:null;
+  // Dispara email de alimentacao para DP ou Financeiro
+  if(sol.alimentacao){
+    var a=sol.alimentacao;
+    var destAlim=a.email;
+    var tipoLabel=a.tipo==='flash'?'Flash (CLT)':'Clara (PJ)';
+    var corpoAlim='Solicitacao de adiantamento de alimentacao APROVADA — compra confirmada pelo administrativo.'+nl+nl
+      +'=== DADOS DA VIAGEM ==='+nl
+      +'Colaborador: '+sol.viajante+nl
+      +'Rota: '+sol.partida+' -> '+sol.chegada+nl
+      +'Periodo: '+fmt(sol.ida)+' a '+fmt(sol.volta)+nl
+      +'Classe: '+sol.classeLabel+nl+nl
+      +(passAprov?'=== PASSAGEM APROVADA ==='+nl
+        +'Opcao '+(passIdx+1)+': '+passAprov.desc+(passAprov.valor?' — R$ '+passAprov.valor:'')+nl
+        +'Horario ida: '+sol.horIda+nl
+        +'Horario volta: '+sol.horVolta+nl
+        +(passAprov.obs?'Obs: '+passAprov.obs+nl:'')+nl:'')
+      +(hospAprov&&(hospAprov.hospDesc||hospAprov.hospValor)?'=== HOSPEDAGEM APROVADA ==='+nl+'Opcao '+(hospIdx+1)+': '+hospAprov.hospDesc+(hospAprov.hospValor?' — R$ '+hospAprov.hospValor:'')+nl+(hospAprov.hospObs?'Obs: '+hospAprov.hospObs+nl:'')+nl:'')
+      +'=== ALIMENTACAO ==='+nl
+      +'Tipo: '+tipoLabel+nl
+      +'Cidade: '+(a.cidade==='capital'?'**Capital especial** (Sao Paulo, Rio de Janeiro, Brasilia, Porto Alegre, Curitiba, Salvador, Recife, Florianopolis)':'Interior/Geral')+nl
+      +'Diarias: '+a.dias+(a.dias%1!==0?' ('+a.dias+' diarias)':' diaria(s)')+nl
+      +'Valor por diaria: R$ '+a.valorDia.toFixed(2)+nl
+      +'TOTAL A LIBERAR: R$ '+a.total.toLocaleString('pt-BR',{minimumFractionDigits:2})+nl
+      +(a.obs?'Observacao: '+a.obs+nl:'')+nl
+      +'Confirmado por: '+CU.nome+nl
+      +'Data: '+new Date().toLocaleDateString('pt-BR')+nl+nl
+      +'Por favor, providencie o adiantamento para o colaborador antes da viagem.';
+    sendEmail([destAlim],'[ALIMENTACAO] '+tipoLabel+' - '+sol.viajante+' | R$ '+a.total.toLocaleString('pt-BR',{minimumFractionDigits:2}),corpoAlim,function(okA){
+      if(okA) toast('Email de alimentacao enviado para '+destAlim+'!');
+    });
+  }
+  renderPainelAdmin(); renderPainel(); badge();
+  toast('Compra confirmada! Email de alimentacao disparado.');
+}
+
+function devolverSolicitante(solId){
+  var sol=null; for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol)return;
+  var obsEl=document.getElementById('adm-obs-'+solId);
+  var obs=obsEl?obsEl.value.trim():'';
+  if(!obs){ if(obsEl){obsEl.classList.add('err');obsEl.focus();} toast('Informe o motivo da devolucao ao solicitante.'); return; }
+  if(obsEl) obsEl.classList.remove('err');
+  sol.status='devolvido'; sol.adminObs=obs; sol.adminEm=new Date().toISOString(); sol.adminPor=CU.id;
+  save();
+  var nl='\n';
+  var emailSol=sol.emailSolicitante;
+  if(emailSol){
+    var corpo='Sua solicitacao de viagem foi devolvida para revisao pelo administrativo.'+nl+nl
+      +'Viajante: '+sol.viajante+nl+'Rota: '+sol.partida+' -> '+sol.chegada+nl
+      +'Motivo: '+obs+nl+nl
+      +'Acesse o ViagemCorp, localize a viagem no Painel e clique em "Editar" para corrigir e reenviar.';
+    sendEmail([emailSol],'[REVISAR] Solicitacao de viagem devolvida para ajuste',corpo,function(){});
+  }
+  renderPainelAdmin(); renderPainel(); badge();
+  toast('Devolvido ao solicitante para edicao.');
+}
+
+function renderPainelAdmin(){
+  var el=document.getElementById('painel-admin-confirmacao');
+  if(!el) return;
+  var lista=S.sols.filter(function(s){return s.status==='aprovado_gestor';});
+  if(!lista.length){
+    el.innerHTML='<div style="color:var(--tx3);font-size:13px;text-align:center;padding:20px 0">Nenhuma viagem aguardando confirmacao.</div>';
+    return;
+  }
+  el.innerHTML=lista.map(function(s){
+    var passIdx=s.passagemAprovadaIdx;
+    var hospIdx=s.hospedagemAprovadaIdx;
+    var passAprov=passIdx>=0&&s.orcamentos&&s.orcamentos[passIdx]?s.orcamentos[passIdx]:null;
+    var hospAprov=hospIdx>=0&&s.orcamentos&&s.orcamentos[hospIdx]?s.orcamentos[hospIdx]:null;
+    return '<div style="border:2px solid var(--am);border-radius:var(--rs);padding:1rem;margin-bottom:12px;background:var(--am-bg)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">'
+      +'<div><div style="font-size:15px;font-weight:700">'+esc(s.viajante)+' &rarr; '+esc(s.chegada)+'</div>'
+      +'<div style="font-size:12px;color:var(--tx2)">'+fmt(s.ida)+' &rarr; '+fmt(s.volta)+' &middot; Gestor: '+esc(s.aprovNome)+'</div></div>'
+      +'<span class="badge b-am">Aguardando confirmacao</span>'
+      +'</div>'
+      +(passAprov
+        ?'<div style="background:var(--surf);border:1px solid var(--bor);border-radius:var(--rs);padding:.6rem .85rem;margin-bottom:6px">'
+        +'<div style="font-size:11px;font-weight:700;color:var(--ac);margin-bottom:2px">&#9992; Passagem aprovada pelo gestor</div>'
+        +'<div style="font-size:13px;font-weight:600">'+esc(passAprov.desc)+(passAprov.valor?' &mdash; <span style="color:var(--ac)">R$ '+esc(passAprov.valor)+'</span>':'')+'</div>'
+        +(passAprov.obs?'<div style="font-size:12px;color:var(--tx2)">'+esc(passAprov.obs)+'</div>':'')
+        +'</div>'
+        :'')
+      +(hospAprov&&(hospAprov.hospDesc||hospAprov.hospValor)
+        ?'<div style="background:var(--surf);border:1px solid var(--bor);border-radius:var(--rs);padding:.6rem .85rem;margin-bottom:6px">'
+        +'<div style="font-size:11px;font-weight:700;color:var(--gr);margin-bottom:2px">&#127968; Hospedagem aprovada pelo gestor</div>'
+        +'<div style="font-size:13px;font-weight:600">'+esc(hospAprov.hospDesc)+(hospAprov.hospValor?' &mdash; <span style="color:var(--gr)">R$ '+esc(hospAprov.hospValor)+'</span>':'')+'</div>'
+        +(hospAprov.hospObs?'<div style="font-size:12px;color:var(--tx2)">'+esc(hospAprov.hospObs)+'</div>':'')
+        +'</div>'
+        :'')
+      +(s.decObs?'<div style="font-size:12px;color:var(--tx2);margin-bottom:8px;font-style:italic">Obs gestor: '+esc(s.decObs)+'</div>':'')
+      +'<div class="field" style="margin-bottom:10px"><label class="lbl">Observacao / motivo (obrigatorio para devolucao)</label>'
+      +'<textarea id="adm-obs-'+s.id+'" placeholder="Ex: Compra realizada. Voucher em anexo. / Prazo vencido, solicitar nova cotacao." style="min-height:55px"></textarea></div>'
+      +'<div style="display:flex;gap:8px;justify-content:flex-end">'
+      +'<button class="btn btn-r btn-sm" onclick="devolverSolicitante('+s.id+')">&#8635; Devolver ao solicitante</button>'
+      +'<button class="btn btn-g btn-sm" onclick="confirmarAdmin('+s.id+')">&#10003; Confirmar compra e liberar alimentacao</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function renderPainel(){
+  var lista=filtrar(S.sols);
+  document.getElementById('m0').textContent=lista.length;
+  document.getElementById('m1').textContent=lista.filter(function(s){return s.status==='aguardando_cotacao';}).length;
+  document.getElementById('m2').textContent=lista.filter(function(s){return s.status==='cotacao_enviada';}).length;
+  document.getElementById('m3').textContent=lista.filter(function(s){return s.ida&&diasAte(s.ida)<prazoMin();}).length;
+  badge();
+  // Botão de sync manual para admin
+  var syncBtn=document.getElementById('btn-sync-painel');
+  if(!syncBtn&&CU&&CU.tipo==='admin'){
+    var h=document.querySelector('#painel-screen h1')||document.querySelector('#painel-screen .page-title');
+    if(h){
+      var btn=document.createElement('button');
+      btn.id='btn-sync-painel';
+      btn.className='btn btn-sm';
+      btn.style.cssText='background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;font-size:11px;padding:4px 12px;border-radius:6px;cursor:pointer;margin-left:10px;vertical-align:middle';
+      btn.innerHTML='⟳ Sincronizar';
+      btn.onclick=function(){
+        btn.textContent='Sincronizando...';
+        btn.disabled=true;
+        sbSync().then(function(){
+          return sbLoad();
+        }).then(function(){
+          renderPainel(); badge();
+          btn.innerHTML='⟳ Sincronizar';
+          btn.disabled=false;
+          toast('Dados sincronizados! Solicitacoes: '+S.sols.length);
+        }).catch(function(){
+          btn.innerHTML='⟳ Sincronizar';
+          btn.disabled=false;
+        });
+      };
+      h.appendChild(btn);
+    }
+  }
+  // Card de confirmação administrativa (só admin)
+  var cardAdm=document.getElementById('card-admin-confirmacao');
+  if(cardAdm){
+    var pendAdmin=S.sols.filter(function(s){return s.status==='aprovado_gestor';}).length;
+    cardAdm.style.display=(CU&&CU.tipo==='admin'&&pendAdmin>0)?'block':'none';
+    if(CU&&CU.tipo==='admin') renderPainelAdmin();
+  }
+  var el=document.getElementById('painel-list');
+  if(!lista.length){el.innerHTML='<div style="color:var(--tx3);padding:20px 0;text-align:center;font-size:13px">Nenhuma solicitacao.</div>';return;}
+  var SM={
+    aguardando_cotacao:['b-bl','Aguardando cotacao'],
+    cotacao_enviada:['b-am','Aguardando aprovacao gestor'],
+    aprovado_gestor:['b-am','Aguardando confirmacao admin'],
+    reprovado_gestor:['b-rd','Reprovado pelo gestor'],
+    confirmado_admin:['b-gr','Compra confirmada'],
+    devolvido:['b-rd','Devolvido p/ revisao'],
+    aprovado:['b-gr','Aprovado'],
+    reprovado:['b-rd','Reprovado'],
+    rascunho:['b-am','Editando'],
+    voucher_enviado:['b-gr','Voucher enviado']
+  };
+  el.innerHTML=lista.slice(0,20).map(function(s){
+    var bd=SM[s.status]||['b-gy',s.status];
+    var acao='';
+    if(CU.tipo==='admin'&&s.status==='aguardando_cotacao') acao='<button class="btn btn-o btn-sm" onclick="goTo(\'cotacoes\')">Cotar</button>';
+    if(CU.tipo==='admin'&&(s.status==='aprovado'||s.status==='confirmado_admin')&&s.status!=='voucher_enviado') acao='<button class="btn btn-p btn-sm" onclick="abrirVoucher('+s.id+')">Anexar voucher</button>';
+    if(s.status==='cotacao_enviada'&&podeAprovar(s)) acao='<button class="btn btn-o btn-sm" onclick="goTo(\'aprovacoes\')">Aprovar</button>';
+    if((s.status==='reprovado'||s.status==='reprovado_gestor'||s.status==='devolvido')&&(CU.tipo==='admin'||s.criadoPor===CU.id)) acao='<button class="btn btn-am btn-sm" onclick="reabrirSol('+s.id+')">Editar e reenviar</button>';
+    if(s.status==='rascunho'&&(CU.tipo==='admin'||s.criadoPor===CU.id)) acao='<button class="btn btn-p btn-sm" onclick="editarSol('+s.id+')">Continuar edicao</button>';
+    var excluirBtn = CU.tipo==='admin'
+      ? '<button class="btn btn-r btn-sm" style="margin-left:6px;padding:4px 10px" onclick="excluirSol('+s.id+',event)" title="Excluir solicitacao"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
+      : '';
+    return '<div class="rrow" style="cursor:pointer" onclick="abrirDrawer('+s.id+')"><div class="rmain"><div class="rname">'+esc(s.viajante)+' &rarr; '+esc(s.chegada)+'</div>'
+      +'<div class="rmeta">'+fmt(s.ida)+(s.volta?' &rarr; '+fmt(s.volta):'')+' &middot; '+esc(s.classeLabel)+' &middot; '+esc(s.aprovNome)+'</div></div>'
+      +'<div class="ract">'+(s.ida&&diasAte(s.ida)<prazoMin()?'<span class="badge b-rd">Fora prazo</span>':'')+'<span class="badge '+bd[0]+'">'+bd[1]+'</span>'+acao+excluirBtn+'</div></div>';
+  }).join('');
+}
+
+function abrirVoucher(solId){
+  var sol=null; for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol)return;
+  var ex=document.getElementById('modal-voucher'); if(ex)ex.remove();
+  var m=document.createElement('div'); m.id='modal-voucher';
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;overflow-y:auto';
+  m.innerHTML='<div style="background:var(--surf);border-radius:var(--r);padding:2rem;max-width:560px;width:100%;box-shadow:var(--shm)">'
+    +'<div style="font-size:17px;font-weight:700;margin-bottom:4px">Anexar Voucher</div>'
+    +'<div style="font-size:13px;color:var(--tx2);margin-bottom:1.25rem">'+esc(sol.viajante)+' &rarr; '+esc(sol.chegada)+' | '+fmt(sol.ida)+'</div>'
+    +'<div class="field" style="margin-bottom:16px"><label class="lbl">Descricao do voucher</label><input id="v-nome" placeholder="Ex: Voucher LATAM voo 1234 + Hotel Executive"></div>'
+    +'<div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Anexos (ate 3 arquivos — PDF, imagem ou qualquer formato)</div>'
+    +[0,1,2].map(function(i){
+      return '<div style="border:1px solid var(--bor);border-radius:var(--rs);padding:.875rem;margin-bottom:10px">'
+        +'<div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">Anexo '+(i+1)+(i===0?' (Principal)':i===1?' (Complementar)':' (Adicional)')+'</div>'
+        +'<div class="field" style="margin-bottom:8px"><label class="lbl">Descricao do arquivo</label>'
+        +'<input id="vdesc-'+i+'" placeholder="Ex: Passagem LATAM / Reserva Hotel"></div>'
+        +'<div id="vzone-'+i+'" style="border:2px dashed var(--bor2);border-radius:var(--rs);padding:1rem;text-align:center;cursor:pointer;min-height:70px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px" onclick="document.getElementById(\'vinp-'+i+'\').click()">'
+        +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
+        +'<span style="font-size:11px;color:var(--tx3)">Clique para selecionar ou arraste aqui (PDF, imagem, qualquer formato)</span>'
+        +'</div>'
+        +'<input type="file" id="vinp-'+i+'" style="display:none" onchange="vAnexo(this,'+i+')">'
+        +'</div>';
+    }).join('')
+    +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">'
+    +'<button class="btn btn-o btn-sm" onclick="document.getElementById(\'modal-voucher\').remove()">Cancelar</button>'
+    +'<button class="btn btn-p btn-sm" onclick="enviarVoucher('+solId+')">Enviar voucher ao solicitante</button>'
+    +'</div></div>';
+  document.body.appendChild(m);
+  // Drag and drop for each zone
+  [0,1,2].forEach(function(i){
+    var zone=document.getElementById('vzone-'+i);
+    if(!zone)return;
+    zone.addEventListener('dragover',function(e){e.preventDefault();zone.style.borderColor='var(--ac)';});
+    zone.addEventListener('dragleave',function(){zone.style.borderColor='';});
+    zone.addEventListener('drop',function(e){
+      e.preventDefault();zone.style.borderColor='';
+      if(e.dataTransfer.files[0])vCarregarArquivo(e.dataTransfer.files[0],i);
+    });
+  });
+}
+
+function vAnexo(inp,idx){
+  if(inp.files&&inp.files[0])vCarregarArquivo(inp.files[0],idx);
+}
+
+function vCarregarArquivo(file,idx){
+  var r=new FileReader();
+  r.onload=function(e){
+    var zone=document.getElementById('vzone-'+idx);
+    if(!zone)return;
+    var isImg=file.type.indexOf('image')>=0;
+    var isPdf=file.type==='application/pdf';
+    var icon=isImg
+      ?'<img src="'+e.target.result+'" style="max-height:80px;max-width:100%;border-radius:4px">'
+      :'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="'+(isPdf?'#dc2626':'var(--ac)')+'" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+    zone.innerHTML=icon
+      +'<div style="font-size:12px;font-weight:600;color:var(--tx);margin-top:4px">'+esc(file.name)+'</div>'
+      +'<div style="font-size:11px;color:var(--tx3)">'+(file.size>1024*1024?(file.size/1024/1024).toFixed(1)+' MB':(file.size/1024).toFixed(0)+' KB')+'</div>'
+      +'<div style="font-size:11px;color:var(--ac);margin-top:2px">Clique para trocar</div>';
+    zone.setAttribute('data-file',e.target.result);
+    zone.setAttribute('data-name',file.name);
+    zone.setAttribute('data-type',file.type);
+    // auto-fill desc if empty
+    var desc=document.getElementById('vdesc-'+idx);
+    if(desc&&!desc.value) desc.value=file.name.replace(/\.[^/.]+$/,'');
+  };
+  r.readAsDataURL(file);
+}
+
+function enviarVoucher(solId){
+  var sol=null; for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol)return;
+  var nome=document.getElementById('v-nome')?document.getElementById('v-nome').value.trim():'';
+  var anexos=[];
+  [0,1,2].forEach(function(i){
+    var zone=document.getElementById('vzone-'+i);
+    var desc=document.getElementById('vdesc-'+i);
+    var data=zone?zone.getAttribute('data-file')||'':'';
+    var fname=zone?zone.getAttribute('data-name')||'':'';
+    var ftype=zone?zone.getAttribute('data-type')||'':'';
+    var fdesc=desc?desc.value.trim():'';
+    if(data||fdesc) anexos.push({data:data,nome:fname,tipo:ftype,desc:fdesc});
+  });
+  if(!nome&&!anexos.length){toast('Adicione pelo menos um arquivo ou descricao antes de enviar.');return;}
+  // Save to sol
+  sol.voucher=anexos.length?anexos[0].data:'ok';
+  sol.voucherNome=nome||anexos.map(function(a){return a.desc||a.nome;}).filter(Boolean).join(' + ');
+  sol.voucherAnexos=anexos;
+  sol.status='voucher_enviado';
+  // Salva localStorage com dados completos (inclui binarios)
+  try{ localStorage.setItem(SK,JSON.stringify(S)); }catch(e){}
+  // Salva Supabase sem os dados binários (evita limite de tamanho)
+  if(sb){
+    var Scopy=JSON.parse(JSON.stringify(S));
+    Scopy.sols=Scopy.sols.map(function(ss){
+      if(ss.id===solId&&ss.voucherAnexos){
+        var s2=JSON.parse(JSON.stringify(ss));
+        s2.voucherAnexos=s2.voucherAnexos.map(function(a){return {nome:a.nome,tipo:a.tipo,desc:a.desc,data:''};});
+        s2.voucher='ok';
+        return s2;
+      }
+      return ss;
+    });
+    Scopy._updatedAt=new Date().toISOString();
+    sb.from('vc_state').upsert({id:'main',data:JSON.stringify(Scopy),updated_at:new Date().toISOString()})
+      .then(function(r){ if(r.error) console.warn('Supabase voucher sync error:',r.error); else console.log('Voucher synced OK'); })
+      .catch(function(e){ console.warn('Supabase voucher sync error:',e); });
+  }
+  var nl='\n';
+  var listaAnexos=anexos.map(function(a,i){return 'Anexo '+(i+1)+': '+(a.desc||a.nome||(a.tipo.indexOf('pdf')>=0?'PDF':'Arquivo'));}).join(nl);
+  var corpo='Voucher de viagem disponivel!'+nl+nl
+    +'Viajante: '+sol.viajante+nl
+    +'Rota: '+sol.partida+' -> '+sol.chegada+nl
+    +'Datas: '+fmt(sol.ida)+' -> '+fmt(sol.volta)+nl
+    +(nome?'Descricao: '+nome+nl:'')
+    +(listaAnexos?nl+'Arquivos anexados:'+nl+listaAnexos+nl:'')
+    +nl+'Para baixar os vouchers: abra o app ViagemCorp, clique na sua viagem no Painel e use os botoes de download.'+nl+nl
+    +'Sua viagem esta confirmada. Qualquer duvida entre em contato com a area administrativa.';
+  var modal=document.getElementById('modal-voucher'); if(modal)modal.remove();
+  sendEmail([sol.emailSolicitante].filter(Boolean),'Voucher de Viagem - '+sol.viajante+' | '+sol.partida+' -> '+sol.chegada,corpo,function(ok){
+    renderPainel(); badge();
+    toast(ok?'Voucher enviado para '+sol.emailSolicitante+'!':'Voucher registrado (EmailJS nao configurado).');
+  });
+}
+
+function renderAgencias(){
+  var el=document.getElementById('ag-list');if(!el)return;
+  var TL={passagem_principal:'Passagem - Principal',passagem_backup:'Passagem - Backup',hospedagem:'Hospedagem'};
+  var TB={passagem_principal:'b-ac',passagem_backup:'b-gy',hospedagem:'b-gr'};
+  if(!S.agencias.length){el.innerHTML='<div style="color:var(--tx3);padding:40px;text-align:center;font-size:13px">Configure agencias em Administracao.</div>';return;}
+  el.innerHTML=S.agencias.map(function(a){
+    return '<div class="agcard"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div><div style="font-size:15px;font-weight:700">'+esc(a.nome)+'</div><div style="margin-top:4px"><span class="badge '+(TB[a.tipo]||'b-gy')+'">'+(TL[a.tipo]||a.tipo)+'</span></div></div>'+(a.url?'<a href="'+a.url+'" target="_blank" class="ag-openbtn">&#8599; Abrir portal</a>':'<span style="font-size:12px;color:var(--tx3)">URL nao cadastrada</span>')+'</div>'+(a.login||a.contato?'<div style="font-size:12px;color:var(--tx2);display:flex;gap:18px;flex-wrap:wrap">'+(a.login?'<span><strong>Login:</strong> '+esc(a.login)+'</span>':'')+(a.contato?'<span><strong>Contato:</strong> '+esc(a.contato)+'</span>':'')+'</div>':'')+'</div>';
+  }).join('');
+}
+
+function admTab(tab){
+  ['usuarios','aprovadores','agencias','regras'].forEach(function(t){
+    var e=document.getElementById('at-'+t);if(e)e.classList.toggle('hidden',t!==tab);
+    var b=document.getElementById('admt-'+t);if(b)b.classList.toggle('active',t===tab);
+  });
+  if(tab==='usuarios')renderUtbl();
+  if(tab==='aprovadores')renderVinculos();
+  if(tab==='agencias')renderAgtbl();
+  if(tab==='regras'){
+    var p=document.getElementById('cfg-prazo');if(p)p.value=prazoMin();
+    if(S.regras.ejs){
+      var s=document.getElementById('cfg-ejs-svc');if(s)s.value=S.regras.ejs.svc||'';
+      var t=document.getElementById('cfg-ejs-tpl');if(t)t.value=S.regras.ejs.tpl||'';
+      var k=document.getElementById('cfg-ejs-pub');if(k)k.value=S.regras.ejs.pub||'';
+    }
+    if(S.regras.supabase){
+      var su=document.getElementById('cfg-sb-url');if(su)su.value=S.regras.supabase.url||'';
+      var sk2=document.getElementById('cfg-sb-key');if(sk2)sk2.value=S.regras.supabase.key||'';
+      var ss=document.getElementById('sb-status');
+      if(ss&&sb){ss.textContent='Conectado';ss.style.color='var(--gr)';}
+    }
+  }
+}
+function renderAdmin(){admTab('usuarios');}
+
+function renderUtbl(){
+  var el=document.getElementById('adm-utbl');if(!el)return;
+  if(!S.usuarios.length){el.innerHTML='<div style="color:var(--tx3);padding:12px;font-size:13px">Nenhum usuario.</div>';return;}
+  el.innerHTML='<table class="admt"><thead><tr><th>Nome</th><th>Login</th><th>Perfil</th><th>Cargo</th><th>E-mail</th><th></th></tr></thead><tbody>'
+    +S.usuarios.map(function(u){return '<tr><td><strong>'+esc(u.nome)+'</strong></td><td style="font-family:var(--mono);font-size:12px">'+esc(u.login)+'</td><td><span class="badge '+(u.tipo==='admin'?'b-ac':u.tipo==='aprovador'?'b-am':'b-gy')+'">'+u.tipo+'</span></td><td>'+esc(u.cargo||'-')+'</td><td style="font-size:12px">'+esc(u.email||'-')+'</td><td style="text-align:right;white-space:nowrap"><button class="btn btn-o btn-sm" onclick="editUser(\''+u.id+'\')" style="margin-right:4px">Editar</button>'+(u.id!=='admin'?'<button class="btn btn-r btn-sm" onclick="delUser(\''+u.id+'\')">Remover</button>':'')+'</td></tr>';}).join('')
+    +'</tbody></table>';
+}
+
+function salvarUser(){
+  var id=document.getElementById('adm-uid').value||('u'+Date.now());
+  var nome=gv('adm-unome'), login=gv('adm-ulogin'), tipo=document.getElementById('adm-utipo').value;
+  var cargo=gv('adm-ucargo'), email=gv('adm-uemail'), senha=document.getElementById('adm-usenha').value;
+  if(!nome||!login){toast('Preencha nome e login.');return;}
+  var ex=null; for(var i=0;i<S.usuarios.length;i++){if(S.usuarios[i].id===id){ex=S.usuarios[i];break;}}
+  if(ex){ex.nome=nome;ex.login=login;ex.tipo=tipo;ex.cargo=cargo;ex.email=email;if(senha)ex.senha=senha;}
+  else{if(!senha||senha.length<6){toast('Senha minima: 6 caracteres.');return;} S.usuarios.push({id:id,login:login,senha:senha,nome:nome,cargo:cargo,tipo:tipo,email:email});}
+  save();limparUser();renderUtbl();renderVinculos();toast('Usuario salvo!');
+}
+function editUser(id){
+  var u=null;for(var i=0;i<S.usuarios.length;i++){if(S.usuarios[i].id===id){u=S.usuarios[i];break;}}if(!u)return;
+  document.getElementById('adm-uid').value=id;
+  document.getElementById('adm-unome').value=u.nome;
+  document.getElementById('adm-ulogin').value=u.login;
+  document.getElementById('adm-utipo').value=u.tipo;
+  document.getElementById('adm-ucargo').value=u.cargo||'';
+  document.getElementById('adm-uemail').value=u.email||'';
+  document.getElementById('adm-usenha').value='';
+  document.getElementById('adm-usenha').placeholder='Deixe em branco para manter';
+  document.getElementById('adm-unome').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function delUser(id){if(!confirm('Remover usuario?'))return;S.usuarios=S.usuarios.filter(function(u){return u.id!==id;});save();renderUtbl();toast('Removido.');}
+function limparUser(){['adm-uid','adm-unome','adm-ulogin','adm-ucargo','adm-uemail'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});document.getElementById('adm-usenha').value='';document.getElementById('adm-usenha').placeholder='Minimo 6 caracteres';document.getElementById('adm-utipo').value='solicitante';}
+
+function renderVinculos(){
+  var el=document.getElementById('adm-vinculo-list');if(!el)return;
+  var aprovs=S.usuarios.filter(function(u){return u.tipo==='aprovador'||u.tipo==='admin';});
+  el.innerHTML=Object.keys(CLASSES).map(function(cls){
+    var opts='<option value="">- sem pre-selecao -</option>'+aprovs.map(function(a){return '<option value="'+a.id+'"'+(S.vinculos[cls]===a.id?' selected':'')+'>'+esc(a.nome+(a.cargo?' ('+a.cargo+')':''))+'</option>';}).join('');
+    return '<div style="display:grid;grid-template-columns:220px 1fr;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--bor)"><div style="font-size:13px;font-weight:500">'+esc(CLASSES[cls])+'</div><select id="vinc-'+cls+'" onchange="saveVinc(\''+cls+'\')">'+opts+'</select></div>';
+  }).join('');
+}
+function saveVinc(cls){S.vinculos[cls]=document.getElementById('vinc-'+cls).value;save();toast('Vinculo salvo!');}
+
+function renderAgtbl(){
+  var el=document.getElementById('adm-agtbl');if(!el)return;
+  var TL={passagem_principal:'Principal',passagem_backup:'Backup',hospedagem:'Hospedagem'};
+  if(!S.agencias.length){el.innerHTML='<div style="color:var(--tx3);font-size:13px;padding:12px">Nenhuma agencia.</div>';return;}
+  el.innerHTML='<table class="admt"><thead><tr><th>Nome</th><th>Tipo</th><th>Portal</th><th>Login</th><th></th></tr></thead><tbody>'
+    +S.agencias.map(function(a){return '<tr><td><strong>'+esc(a.nome)+'</strong>'+(a.obs?'<div style="font-size:11px;color:var(--tx3)">'+esc(a.obs)+'</div>':'')+'</td><td><span class="badge b-gy">'+(TL[a.tipo]||a.tipo)+'</span></td><td>'+(a.url?'<a href="'+a.url+'" target="_blank" style="color:var(--ac);font-size:12px">Abrir</a>':'-')+'</td><td style="font-family:var(--mono);font-size:12px">'+esc(a.login||'-')+'</td><td style="text-align:right;white-space:nowrap"><button class="btn btn-o btn-sm" onclick="editAg(\''+a.id+'\')" style="margin-right:4px">Editar</button><button class="btn btn-r btn-sm" onclick="delAg(\''+a.id+'\')">Remover</button></td></tr>';}).join('')
+    +'</tbody></table>';
+}
+function salvarAg(){
+  var id=document.getElementById('adm-agid').value||('ag'+Date.now());
+  var nome=gv('adm-agnome');if(!nome){toast('Informe o nome.');return;}
+  var dados={nome:nome,tipo:document.getElementById('adm-agtipo').value,url:gv('adm-agurl'),login:gv('adm-aglogin'),senha:document.getElementById('adm-agsenha').value||'',contato:gv('adm-agcontato'),obs:gv('adm-agobs')};
+  var ex=null;for(var i=0;i<S.agencias.length;i++){if(S.agencias[i].id===id){ex=S.agencias[i];break;}}
+  if(ex){for(var k in dados)ex[k]=dados[k];}else S.agencias.push(Object.assign({id:id},dados));
+  save();limparAg();renderAgtbl();toast('Agencia salva!');
+}
+function editAg(id){var a=null;for(var i=0;i<S.agencias.length;i++){if(S.agencias[i].id===id){a=S.agencias[i];break;}}if(!a)return;document.getElementById('adm-agid').value=id;document.getElementById('adm-agnome').value=a.nome;document.getElementById('adm-agtipo').value=a.tipo;document.getElementById('adm-agurl').value=a.url;document.getElementById('adm-aglogin').value=a.login;document.getElementById('adm-agsenha').value='';document.getElementById('adm-agcontato').value=a.contato;document.getElementById('adm-agobs').value=a.obs;document.getElementById('adm-agnome').scrollIntoView({behavior:'smooth',block:'center'});}
+function delAg(id){if(!confirm('Remover?'))return;S.agencias=S.agencias.filter(function(a){return a.id!==id;});save();renderAgtbl();toast('Removida.');}
+function limparAg(){['adm-agid','adm-agnome','adm-agurl','adm-aglogin','adm-agsenha','adm-agcontato','adm-agobs'].forEach(function(i){var e=document.getElementById(i);if(e)e.value='';});document.getElementById('adm-agtipo').value='passagem_principal';}
+
+function salvarRegras(){S.regras.prazo=parseInt(document.getElementById('cfg-prazo').value)||30;save();toast('Regras salvas!');}
+
+function salvarSupabase(){
+  var url = document.getElementById('cfg-sb-url') ? document.getElementById('cfg-sb-url').value.trim() : '';
+  var key = document.getElementById('cfg-sb-key') ? document.getElementById('cfg-sb-key').value.trim() : '';
+  if(!url||!key){ toast('Preencha a URL e a Key do Supabase.'); return; }
+  SB_URL=url; SB_KEY=key;
+  if(!sbInit()){ toast('Erro ao conectar. Verifique as credenciais.'); return; }
+  S.regras.supabase={url:url,key:key};
+  // also save to localStorage so it loads next time
+  try{ localStorage.setItem(SK,JSON.stringify(S)); }catch(e){}
+  var st=document.getElementById('sb-status');
+  if(st){ st.textContent='Conectando...'; st.style.color='var(--tx3)'; }
+  sbSync().then(function(){
+    if(st){ st.textContent='Conectado e sincronizado!'; st.style.color='var(--gr)'; }
+    toast('Supabase configurado! Dados sincronizados na nuvem.');
+  });
+}
+
+function testarSupabase(){
+  if(!sb){ toast('Salve as credenciais do Supabase antes de testar.'); return; }
+  var st=document.getElementById('sb-status');
+  if(st)st.textContent='Testando...';
+  sbLoad().then(function(ok){
+    if(st){ st.textContent=ok?'Conexao OK! Dados carregados.':'Sem dados ainda (primeira vez).'; st.style.color=ok?'var(--gr)':'var(--am)'; }
+    toast(ok?'Supabase funcionando!':'Conexao OK, banco vazio (normal na primeira vez).');
+  });
+}
+
+function salvarEmailJS(){
+  var svc=gv('cfg-ejs-svc'),tpl=gv('cfg-ejs-tpl'),pub=gv('cfg-ejs-pub');
+  if(!svc||!tpl||!pub){toast('Preencha todos os campos do EmailJS.');return;}
+  EJS_SVC=svc;EJS_TPL=tpl;EJS_PUB=pub;EJS_OK=true;
+  try{emailjs.init({publicKey:EJS_PUB});}catch(e){}
+  S.regras.ejs={svc:svc,tpl:tpl,pub:pub};save();
+  var st=document.getElementById('ejs-status');if(st){st.textContent='Ativo!';st.style.color='var(--gr)';}
+  toast('EmailJS configurado e ativado!');
+}
+
+function testarEmail(){
+  if(!EJS_OK){toast('Salve as credenciais do EmailJS antes de testar.');return;}
+  var st=document.getElementById('ejs-status');if(st)st.textContent='Enviando...';
+  sendEmail(EMAIL_ADMIN,'[Teste] ViagemCorp EmailJS','Este e um email de teste do sistema ViagemCorp. Se voce recebeu, o EmailJS esta funcionando corretamente!',function(ok){
+    if(st){st.textContent=ok?'Teste enviado com sucesso!':'Erro - verifique as credenciais.';st.style.color=ok?'var(--gr)':'var(--rd)';}
+    toast(ok?'Teste enviado para '+EMAIL_ADMIN.join(' e ')+'!':'Falha no envio. Verifique Service ID, Template ID e Public Key.');
+  });
+}
+
+function reabrirSol(solId){
+  var sol=null; for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol)return;
+  if(!confirm('Reabrir esta solicitacao para edicao? Ela voltara como rascunho.'))return;
+  sol.status='rascunho'; sol.decisao=''; sol.decObs=''; sol.orcamentos=[]; save();
+  renderPainel(); badge();
+  toast('Solicitacao reaberta. Acesse "Nova Requisicao" para editar e reenviar.');
+}
+
+function editarSol(solId){
+  var sol=null; for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol)return;
+  // Populate form with existing data
+  goTo('nova');
+  setTimeout(function(){
+    document.getElementById('fn').value=sol.viajante||'';
+    document.getElementById('fcpf').value=sol.cpf||'';
+    document.getElementById('fnasc').value=sol.nasc||'';
+    document.getElementById('femail').value=sol.emailSolicitante||'';
+    document.getElementById('fpar').value=sol.partida||'';
+    document.getElementById('fdest').value=sol.chegada||'';
+    document.getElementById('fida').value=sol.ida||'';
+    document.getElementById('faltida').value=sol.altIda||'';
+    document.getElementById('fhorida').value=sol.horIda||'';
+    document.getElementById('fvolta').value=sol.volta||'';
+    document.getElementById('fhorvolta').value=sol.horVolta||'';
+    document.getElementById('fmotivo').value=sol.motivo||'';
+    document.getElementById('fobs').value=sol.obs||'';
+    document.getElementById('fjustif').value=sol.justif||'';
+    if(sol.hosp==='sim'){
+      document.getElementById('fhosplocal').value=sol.hospLocal||'';
+      document.getElementById('hosp-wrap').classList.remove('hidden');
+      var hr=document.querySelector('input[name="hosp"][value="sim"]');if(hr)hr.checked=true;
+      if(sol.acomo){var ar=document.querySelector('input[name="acomo"][value="'+sol.acomo+'"]');if(ar)ar.checked=true;}
+    }
+    if(sol.tipo==='rodoviaria'){
+      document.getElementById('frg').value=sol.rg||'';
+      document.getElementById('rg-wrap').classList.remove('hidden');
+      var tr=document.querySelector('input[name="tipo"][value="rodoviaria"]');if(tr)tr.checked=true;
+    }
+    if(sol.bagagem==='sim'){var br=document.querySelector('input[name="bag"][value="sim"]');if(br)br.checked=true;}
+    var cls=document.getElementById('fclasse');if(cls){cls.value=sol.classe||'';updAprov();}
+    var ctr=document.getElementById('fcentro');if(ctr)ctr.value=sol.centro||'';
+    var apr=document.getElementById('faprovador');if(apr)apr.value=sol.aprovId||'';
+    if(sol.ida)checkPrazo();
+    // Store the id being edited so submit will update instead of create
+    document.getElementById('btn-submit').setAttribute('data-edit-id', solId);
+    document.getElementById('btn-submit').textContent='Salvar alteracoes e reenviar';
+    // Remove old sol
+    S.sols=S.sols.filter(function(s){return s.id!==solId;}); save();
+  }, 100);
+}
+
+function fmtDt(iso){
+  if(!iso)return '-';
+  try{
+    var d=new Date(iso);
+    return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){return iso;}
+}
+
+function fecharDrawer(){
+  document.getElementById('drawer-sol').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function downloadAnexo(solId, idx){
+  var sol=null;
+  for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol||!sol.voucherAnexos||!sol.voucherAnexos[idx]){toast('Arquivo nao disponivel.');return;}
+  var a=sol.voucherAnexos[idx];
+  if(!a.data){toast('Arquivo nao disponivel.');return;}
+  var isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if(isMobile){
+    // Mobile: abrir em nova aba (funciona em todos dispositivos)
+    var win=window.open();
+    if(win){
+      win.document.write('<html><head><title>'+(a.nome||'Voucher')+'</title>'
+        +'<meta name="viewport" content="width=device-width,initial-scale=1">'
+        +'<style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh}'
+        +'img{max-width:100%;max-height:100vh;object-fit:contain}'
+        +'iframe{width:100%;height:100vh;border:none}'
+        +'</style></head><body>');
+      var isImg=a.tipo&&a.tipo.indexOf('image')>=0;
+      var isPdf=a.tipo&&a.tipo.indexOf('pdf')>=0;
+      if(isImg){
+        win.document.write('<img src="'+a.data+'" alt="'+(a.nome||'Voucher')+'">');
+      } else {
+        win.document.write('<iframe src="'+a.data+'"></iframe>');
+      }
+      win.document.write('</body></html>');
+      win.document.close();
+    } else {
+      // Popup bloqueado - fallback para link direto
+      var link=document.createElement('a');
+      link.href=a.data;
+      link.target='_blank';
+      link.rel='noopener';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    toast('Abrindo arquivo...');
+  } else {
+    // Desktop: download direto
+    var link=document.createElement('a');
+    link.href=a.data;
+    link.download=a.nome||('voucher-'+(idx+1));
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast('Baixando: '+(a.nome||'arquivo')+'...');
+  }
+}
+
+function abrirDrawer(solId){
+  var sol=null;
+  for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol)return;
+
+  var SM={aguardando_cotacao:'Aguardando cotacao',cotacao_enviada:'Aguardando aprovacao',aprovado:'Aprovado',reprovado:'Reprovado',rascunho:'Editando',voucher_enviado:'Voucher enviado'};
+  var SC={aguardando_cotacao:'b-bl',cotacao_enviada:'b-am',aprovado:'b-gr',reprovado:'b-rd',rascunho:'b-am',voucher_enviado:'b-gr'};
+  var prazo=sol.ida&&diasAte(sol.ida)<prazoMin();
+
+  document.getElementById('drawer-title').textContent=sol.viajante+' -> '+sol.chegada;
+
+  var h='';
+
+  // Status badge
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">'
+   +'<div><div style="font-size:18px;font-weight:700">'+esc(sol.viajante)+' &rarr; '+esc(sol.chegada)+'</div>'
+   +'<div style="font-size:13px;color:var(--tx2);margin-top:2px">'+fmt(sol.ida)+' &rarr; '+fmt(sol.volta)+'</div></div>'
+   +'<span class="badge '+(SC[sol.status]||'b-gy')+'">'+(SM[sol.status]||sol.status)+'</span>'
+   +'</div>';
+
+  if(prazo) h+='<div class="alert a-rd" style="margin-bottom:1rem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>&nbsp;Solicitacao fora do prazo de '+prazoMin()+' dias.</div>';
+
+  // Dados resumo
+  h+='<div class="asum" style="margin-bottom:1.25rem">'
+   +'<div class="asrow"><div class="asl">Viajante</div><div class="asv">'+esc(sol.viajante)+' &middot; CPF: '+esc(sol.cpf)+'</div></div>'
+   +'<div class="asrow"><div class="asl">Nascimento</div><div class="asv">'+esc(sol.nasc?fmt(sol.nasc):'-')+'</div></div>'
+   +'<div class="asrow"><div class="asl">E-mail do viajante</div><div class="asv">'+esc(sol.emailSolicitante||'-')+'</div></div>'
+   +'<div class="asrow"><div class="asl">Rota</div><div class="asv">'+esc(sol.partida)+' &rarr; '+esc(sol.chegada)+'</div></div>'
+   +'<div class="asrow"><div class="asl">Ida</div><div class="asv">'+fmt(sol.ida)+' &middot; '+esc(sol.horIda)+'</div></div>'
+   +'<div class="asrow"><div class="asl">Volta</div><div class="asv">'+fmt(sol.volta)+' &middot; '+esc(sol.horVolta)+'</div></div>'
+   +'<div class="asrow"><div class="asl">Passagem</div><div class="asv">'+esc(sol.tipo)+' &middot; Bagagem: '+(sol.bagagem==='sim'?'Sim':'Nao')+'</div></div>'
+   +'<div class="asrow"><div class="asl">Hospedagem</div><div class="asv">'+(sol.hosp==='sim'?'Sim &middot; '+esc(sol.hospLocal)+' ('+esc(sol.acomo)+')':'Nao')+'</div></div>'
+   +'<div class="asrow"><div class="asl">Classe</div><div class="asv">'+esc(sol.classeLabel)+'</div></div>'
+   +'<div class="asrow"><div class="asl">Centro</div><div class="asv">'+esc(sol.centro)+'</div></div>'
+   +'<div class="asrow"><div class="asl">Aprovador</div><div class="asv">'+esc(sol.aprovNome)+'</div></div>'
+   +'<div class="asrow"><div class="asl">Motivo</div><div class="asv">'+esc(sol.motivo)+'</div></div>'
+   +(sol.justif?'<div class="asrow" style="background:var(--am-bg)"><div class="asl" style="color:var(--am)">Justificativa</div><div class="asv" style="color:var(--am)">'+esc(sol.justif)+'</div></div>':'')
+   +'</div>';
+
+  // Timeline
+  h+='<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--tx3);margin-bottom:14px">Tramitacao</div>';
+  h+='<div class="timeline">';
+
+  // 1. Criado
+  h+='<div class="tl-item">'
+   +'<div class="tl-dot done"></div>'
+   +'<div class="tl-label">Requisicao criada</div>'
+   +'<div class="tl-date">'+fmtDt(sol.criadoEm)+'</div>'
+   +'<div class="tl-body">Enviado para cotacao pela area administrativa.</div>'
+   +(sol.transporte&&sol.transporte.apps&&sol.transporte.apps.length?'<div class="tl-body" style="margin-top:4px">Transporte solicitado: <strong>'+esc(sol.transporte.apps.join(' + '))+'</strong>'+(sol.transporte.transfer==='sim'?' + Transfer (embarque: '+esc(sol.transporte.embarque)+')':'')+'</div>':'')
+   +'</div>';
+
+  // Alimentacao summary in timeline
+  if(sol.alimentacao){
+    var ainfo=sol.alimentacao;
+    h+='<div class="tl-item"><div class="tl-dot info"></div>'
+     +'<div class="tl-label">Alimentacao solicitada</div>'
+     +'<div class="tl-body">'
+     +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">'
+     +'<span class="badge '+(ainfo.tipo==='flash'?'b-ac':'b-gr')+'">'+(ainfo.tipo==='flash'?'&#9889; Flash':'&#9733; Clara')+'</span>'
+     +'<span class="badge b-gy">'+(ainfo.cidade==='capital'?'Capital especial':'Interior/Geral')+'</span>'
+     +'<span class="badge b-gy">'+ainfo.dias+' dia(s)</span>'
+     +'</div>'
+     +'<div style="font-size:14px;font-weight:700;color:var(--ac);margin-top:6px">Total: R$ '+ainfo.total.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</div>'
+     +'<div style="font-size:11px;color:var(--tx3)">Enviar para: '+esc(ainfo.email)+'</div>'
+     +(ainfo.obs?'<div style="font-size:12px;color:var(--tx2);margin-top:3px">'+esc(ainfo.obs)+'</div>':'')
+     +'</div>'
+     +'</div>';
+  }
+
+  // 2. Cotacoes
+  if(sol.orcamentos&&sol.orcamentos.length){
+    h+='<div class="tl-item"><div class="tl-dot done"></div>'
+     +'<div class="tl-label">'+sol.orcamentos.length+' orcamento(s) registrado(s)</div>'
+     +'<div class="tl-body">';
+    sol.orcamentos.forEach(function(o,i){
+      h+='<div style="margin:6px 0;padding:8px 10px;background:var(--surf2);border-radius:var(--rs);border:1px solid var(--bor)">'
+       +'<div style="font-weight:600;font-size:12px;color:var(--ac);margin-bottom:3px">Opcao '+(i+1)+'</div>'
+       +'<div style="font-size:12px"><strong>Passagem:</strong> '+esc(o.desc||'-')+(o.valor?' &mdash; R$ '+esc(o.valor):'')+'</div>'
+       +(o.hospDesc?'<div style="font-size:12px"><strong>Hotel:</strong> '+esc(o.hospDesc)+(o.hospValor?' &mdash; R$ '+esc(o.hospValor):'')+'</div>':'')
+       +(o.obs?'<div style="font-size:11px;color:var(--tx3);margin-top:3px">'+esc(o.obs)+'</div>':'')
+       +((o.img||o.hospImg)?'<div style="display:flex;gap:6px;margin-top:6px">'
+         +(o.img?'<img src="'+o.img+'" style="max-height:70px;border-radius:3px;border:1px solid var(--bor)">':'')
+         +(o.hospImg?'<img src="'+o.hospImg+'" style="max-height:70px;border-radius:3px;border:1px solid var(--bor)">':'')
+         +'</div>':'')
+       +'</div>';
+    });
+    h+='</div></div>';
+  } else {
+    var dotCls=sol.status==='aguardando_cotacao'?'warn':'';
+    h+='<div class="tl-item"><div class="tl-dot '+dotCls+'"></div>'
+     +'<div class="tl-label" style="color:var(--tx3)">Cotacoes '+(sol.status==='aguardando_cotacao'?'pendentes':'nao registradas')+'</div>'
+     +'</div>';
+  }
+
+  // 3. Aprovacao
+  if(sol.status==='aprovado'||sol.status==='reprovado'||sol.status==='voucher_enviado'){
+    var dotCls2=sol.status==='reprovado'?'bad':'done';
+    var aprovUser2=null; for(var i=0;i<S.usuarios.length;i++){if(S.usuarios[i].id===sol.aprovId){aprovUser2=S.usuarios[i];break;}}
+    var aprovNome2=aprovUser2?aprovUser2.nome:sol.aprovNome;
+    var aprovEmail2=aprovUser2?aprovUser2.email||'':sol.aprovEmail||'';
+    var aprovCargo2=aprovUser2?aprovUser2.cargo||'':'';
+    h+='<div class="tl-item"><div class="tl-dot '+dotCls2+'"></div>'
+     +'<div class="tl-label">'+(sol.status==='reprovado'?'Reprovado':'Aprovado')+'</div>'
+     +'<div class="tl-date">'+fmtDt(sol.decEm)+'</div>'
+     +'<div class="tl-body">'
+       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:8px 10px;background:var(--surf2);border-radius:var(--rs);border:1px solid var(--bor)">'
+         +'<div style="width:32px;height:32px;border-radius:50%;background:'+(sol.status==='reprovado'?'var(--rd-bg)':'var(--gr-bg)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+           +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="'+(sol.status==='reprovado'?'var(--rd)':'var(--gr)')+'" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>'
+         +'</div>'
+         +'<div>'
+           +'<div style="font-size:14px;font-weight:700;color:'+(sol.status==='reprovado'?'var(--rd)':'var(--gr)')+'">'+esc(aprovNome2)+'</div>'
+           +(aprovCargo2?'<div style="font-size:11px;color:var(--tx3)">'+esc(aprovCargo2)+'</div>':'')
+           +(aprovEmail2?'<div style="font-size:11px;color:var(--ac)">'+esc(aprovEmail2)+'</div>':'')
+         +'</div>'
+       +'</div>'
+     +(sol.decObs?'<div style="font-size:13px">Observacao: '+esc(sol.decObs)+'</div>':'')
+     +'</div>'
+     +'</div>';
+  } else if(sol.status==='cotacao_enviada'){
+    h+='<div class="tl-item"><div class="tl-dot warn"></div>'
+     +'<div class="tl-label" style="color:var(--am)">Aguardando aprovacao</div>'
+     +'<div class="tl-body">Aprovador: '+esc(sol.aprovNome)+'</div>'
+     +'</div>';
+  }
+
+  // 4. Voucher
+  if(sol.status==='voucher_enviado'&&sol.voucherAnexos&&sol.voucherAnexos.length){
+    h+='<div class="tl-item"><div class="tl-dot info"></div>'
+     +'<div class="tl-label">Voucher enviado</div>'
+     +'<div class="tl-body" style="margin-top:6px">';
+    if(sol.voucherNome) h+='<div style="font-size:13px;margin-bottom:8px">'+esc(sol.voucherNome)+'</div>';
+    sol.voucherAnexos.forEach(function(a,i){
+      var isPdf=a.tipo&&a.tipo.indexOf('pdf')>=0;
+      var isImg=a.tipo&&a.tipo.indexOf('image')>=0;
+      h+='<div style="display:flex;align-items:center;gap:10px;border:1px solid var(--bor);border-radius:var(--rs);padding:8px 12px;margin-bottom:6px;background:var(--surf2)">'
+       +'<div style="width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:'+(isPdf?'var(--rd-bg)':'var(--ac-bg)')+';flex-shrink:0">'
+       +(isPdf?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
+       :'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>')
+       +'</div>'
+       +'<div style="flex:1;min-width:0">'
+       +'<div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(a.desc||a.nome||'Anexo '+(i+1))+'</div>'
+       +(a.nome?'<div style="font-size:11px;color:var(--tx3)">'+esc(a.nome)+'</div>':'')
+       +'</div>'
+       +(a.data
+  ?/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    // Mobile: link direto <a> — nunca bloqueado
+    ?'<a href="'+a.data+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--ac);color:#fff;border-radius:var(--rs);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap">'
+     +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+     +' Abrir</a>'
+    // Desktop: botao download
+    :'<button class="btn btn-p btn-sm" onclick="downloadAnexo('+sol.id+','+i+')" style="padding:5px 12px;font-size:12px;white-space:nowrap">'
+     +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+     +' Baixar</button>'
+  :'')
+       +'</div>';
+    });
+    // Show image previews if any
+    sol.voucherAnexos.forEach(function(a){
+      if(a.tipo&&a.tipo.indexOf('image')>=0&&a.data){
+        h+='<img src="'+a.data+'" style="max-width:100%;border-radius:var(--rs);border:1px solid var(--bor);margin-top:6px">';
+      }
+    });
+    h+='</div></div>';
+  } else if(sol.status==='aprovado'){
+    h+='<div class="tl-item"><div class="tl-dot" style="border-color:var(--bor2)"></div>'
+     +'<div class="tl-label" style="color:var(--tx3)">Voucher pendente</div>'
+     +'<div class="tl-body">Aguardando area administrativa anexar o voucher.</div>'
+     +'</div>';
+  }
+
+  h+='</div>'; // close timeline
+
+  document.getElementById('drawer-body').innerHTML=h;
+  document.getElementById('drawer-sol').setAttribute('data-sol-id', solId);
+  document.getElementById('drawer-sol').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function buildProcessoHTML(sol){
+  if(!sol)return '';
+  var SM={aguardando_cotacao:'Aguardando cotacao',cotacao_enviada:'Aguardando aprovacao gestor',aprovado_gestor:'Aprovado pelo gestor',reprovado_gestor:'Reprovado pelo gestor',confirmado_admin:'Compra confirmada',devolvido:'Devolvido para revisao',aprovado:'Aprovado',reprovado:'Reprovado',rascunho:'Editando',voucher_enviado:'Voucher enviado'};
+  var statusCls={'aprovado':'section-ok','voucher_enviado':'section-ok','aprovado_gestor':'section-ok','confirmado_admin':'section-ok','reprovado':'section-bad','reprovado_gestor':'section-bad','devolvido':'section-bad','cotacao_enviada':'section-warn','aguardando_cotacao':'section-warn'};
+  var h='';
+
+  // Cabecalho
+  h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #1B4FD8">'
+   +'<div>'
+   +'<h1 style="margin:0 0 4px">'+esc(sol.viajante)+' &rarr; '+esc(sol.chegada)+'</h1>'
+   +'<div style="font-size:12px;color:#555">'+fmt(sol.ida)+' &rarr; '+fmt(sol.volta)+' &middot; '+esc(sol.classeLabel)+'</div>'
+   +'</div>'
+   +'<div style="text-align:right">'
+   +'<div class="status-badge '+(statusCls[sol.status]||'')+'">'+(SM[sol.status]||sol.status)+'</div>'
+   +'<div style="font-size:10px;color:#888;margin-top:4px">Emitido em '+new Date().toLocaleDateString('pt-BR')+' '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</div>'
+   +'<div style="font-size:10px;color:#888">ViagemCorp</div>'
+   +'</div>'
+   +'</div>';
+
+  // Dados da viagem
+  h+='<h2>Dados da viagem</h2>'
+   +'<table>'
+   +'<tr><td>Viajante</td><td>'+esc(sol.viajante)+'</td><td>CPF</td><td>'+esc(sol.cpf)+'</td></tr>'
+   +'<tr><td>Nascimento</td><td>'+esc(sol.nasc?fmt(sol.nasc):'-')+'</td><td>E-mail do viajante</td><td>'+esc(sol.emailSolicitante||'-')+'</td></tr>'
+   +'<tr><td>Rota</td><td colspan="3">'+esc(sol.partida)+' &rarr; '+esc(sol.chegada)+'</td></tr>'
+   +'<tr><td>Ida</td><td>'+fmt(sol.ida)+' &middot; '+esc(sol.horIda)+'</td><td>Volta</td><td>'+fmt(sol.volta)+' &middot; '+esc(sol.horVolta)+'</td></tr>'
+   +'<tr><td>Tipo</td><td>'+esc(sol.tipo)+'</td><td>Bagagem</td><td>'+(sol.bagagem==='sim'?'Sim':'Nao')+'</td></tr>'
+   +'<tr><td>Hospedagem</td><td colspan="3">'+(sol.hosp==='sim'?'Sim &middot; '+esc(sol.hospLocal)+' ('+esc(sol.acomo)+')':'Nao')+'</td></tr>'
+   +'<tr><td>Classe</td><td>'+esc(sol.classeLabel)+'</td><td>Centro</td><td>'+esc(sol.centro)+'</td></tr>'
+   +'<tr><td>Aprovador</td><td colspan="3">'+esc(sol.aprovNome)+'</td></tr>'
+   +'<tr><td>Motivo</td><td colspan="3">'+esc(sol.motivo)+'</td></tr>'
+   +(sol.justif?'<tr><td>Justificativa</td><td colspan="3" style="color:#92400E">'+esc(sol.justif)+'</td></tr>':'')
+   +'<tr><td>Criado em</td><td colspan="3">'+fmtDt(sol.criadoEm)+'</td></tr>'
+   +'</table>';
+
+  // Transporte
+  if(sol.transporte&&((sol.transporte.apps&&sol.transporte.apps.length)||sol.transporte.transfer==='sim')){
+    h+='<h2>Transporte urbano</h2>';
+    h+='<table>';
+    if(sol.transporte.apps&&sol.transporte.apps.length) h+='<tr><td>Aplicativos</td><td colspan="3" style="font-weight:700;color:#1B4FD8">'+esc(sol.transporte.apps.join(' + '))+'</td></tr>';
+    if(sol.transporte.nome) h+='<tr><td>Nome</td><td>'+esc(sol.transporte.nome)+'</td><td>CPF</td><td>'+esc(sol.transporte.cpf)+'</td></tr>';
+    if(sol.transporte.cel) h+='<tr><td>Celular</td><td>'+esc(sol.transporte.cel)+'</td><td>E-mail</td><td>'+esc(sol.transporte.email)+'</td></tr>';
+    if(sol.transporte.transfer==='sim') h+='<tr><td>Transfer</td><td colspan="3" style="color:#0D7A4E;font-weight:700">SIM</td></tr>';
+    if(sol.transporte.embarque) h+='<tr><td>Embarque</td><td colspan="3">'+esc(sol.transporte.embarque)+'</td></tr>';
+    if(sol.transporte.destino) h+='<tr><td>Destino</td><td colspan="3">'+esc(sol.transporte.destino)+'</td></tr>';
+    if(sol.transporte.horario) h+='<tr><td>Horario</td><td colspan="3">'+esc(sol.transporte.horario)+'</td></tr>';
+    if(sol.transporte.obsTransfer) h+='<tr><td>Observacao</td><td colspan="3">'+esc(sol.transporte.obsTransfer)+'</td></tr>';
+    h+='</table>';
+  }
+
+  // Alimentacao
+  if(sol.alimentacao){
+    var a=sol.alimentacao;
+    h+='<h2>Alimentacao / Diarias</h2>'
+     +'<table>'
+     +'<tr><td>Tipo</td><td style="font-weight:700;color:'+(a.tipo==='flash'?'#7C3AED':'#0D7A4E')+'">'+(a.tipo==='flash'?'&#9889; Flash (CLT)':'&#9733; Clara (PJ)')+'</td>'
+     +'<td>E-mail</td><td>'+(a.email||'-')+'</td></tr>'
+     +'<tr><td>Cidade</td><td>'+(a.cidade==='capital'?'Capital especial (R$ 110/dia)':'Interior/Geral (R$ 90/dia)')+'</td>'
+     +'<td>Diaria</td><td>'+(a.diaria==='metade'?'Meia diaria':'Diaria cheia')+'</td></tr>'
+     +'<tr><td>Dias de viagem</td><td>'+a.dias+'</td>'
+     +'<td>Valor/dia</td><td>R$ '+a.valorDia.toFixed(2)+'</td></tr>'
+     +'<tr><td style="font-weight:700">TOTAL</td><td colspan="3" style="font-size:15px;font-weight:800;color:#1B4FD8">R$ '+a.total.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</td></tr>'
+     +(a.obs?'<tr><td>Observacao</td><td colspan="3">'+esc(a.obs)+'</td></tr>':'')
+     +'</table>';
+  }
+
+  // Orcamentos
+  if(sol.orcamentos&&sol.orcamentos.length){
+    var passIdxP=sol.passagemAprovadaIdx!=null?sol.passagemAprovadaIdx:-1;
+    var hospIdxP=sol.hospedagemAprovadaIdx!=null?sol.hospedagemAprovadaIdx:-1;
+    h+='<h2>Orcamentos recebidos ('+sol.orcamentos.length+' opcao(oes))</h2>';
+    sol.orcamentos.forEach(function(o,i){
+      var isPassAprov=passIdxP===i;
+      var isHospAprov=hospIdxP===i;
+      var borderColor=isPassAprov||isHospAprov?'#0D7A4E':'#ddd';
+      h+='<div class="orc-print" style="border-color:'+borderColor+';'+(isPassAprov||isHospAprov?'background:#F0FBF6;':'')+'">'
+       +'<div style="font-weight:700;font-size:12px;color:#1B4FD8;margin-bottom:6px">Opcao '+(i+1)+(i===0?' &mdash; Principal':'')
+       +(isPassAprov&&isHospAprov?' <span style="color:#0D7A4E;font-size:11px">&#10003; VOO + HOSPEDAGEM APROVADOS</span>':isPassAprov?' <span style="color:#0D7A4E;font-size:11px">&#10003; VOO APROVADO</span>':isHospAprov?' <span style="color:#0D7A4E;font-size:11px">&#10003; HOSPEDAGEM APROVADA</span>':'')
+       +'</div>'
+       +'<table>'
+       +(o.desc?'<tr><td>Passagem</td><td>'+esc(o.desc)+(isPassAprov?' <strong style="color:#0D7A4E">&#10003; APROVADO</strong>':'')+'</td></tr>':'')
+       +(o.valor?'<tr><td>Valor passagem</td><td><strong>R$ '+esc(o.valor)+'</strong></td></tr>':'')
+       +(o.horIda||sol.horIda?'<tr><td>Horario ida</td><td>'+esc(sol.horIda||'')+'</td></tr>':'')
+       +(o.horVolta||sol.horVolta?'<tr><td>Horario volta</td><td>'+esc(sol.horVolta||'')+'</td></tr>':'')
+       +(o.hospDesc?'<tr><td>Hospedagem</td><td>'+esc(o.hospDesc)+(isHospAprov?' <strong style="color:#0D7A4E">&#10003; APROVADO</strong>':'')+'</td></tr>':'')
+       +(o.hospValor?'<tr><td>Valor hospedagem</td><td><strong>R$ '+esc(o.hospValor)+'</strong></td></tr>':'')
+       +((o.valor&&o.hospValor)?'<tr><td>Total estimado</td><td><strong style="color:#1B4FD8">R$ '+(parseFloat((o.valor||'0').replace(',','.').replace(/[^\d.]/g,''))+(parseFloat((o.hospValor||'0').replace(',','.').replace(/[^\d.]/g,'')))||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</strong></td></tr>':'')
+       +(o.obs?'<tr><td>Observacao passagem</td><td style="color:#555;font-style:italic">'+esc(o.obs)+'</td></tr>':'')
+       +(o.hospObs?'<tr><td>Observacao hospedagem</td><td style="color:#555;font-style:italic">'+esc(o.hospObs)+'</td></tr>':'')
+       +'</table>'
+       +(o.img&&o.imgIsPdf!==true?'<div style="margin-top:8px"><div style="font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Print passagem:</div><img src="'+o.img+'" alt="Print passagem" style="max-width:100%;height:auto;border:1px solid #ddd;border-radius:3px;display:block"></div>':'')
+       +(o.hospImg&&o.hospImgIsPdf!==true?'<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Print hospedagem:</div><img src="'+o.hospImg+'" alt="Print hospedagem" style="max-width:100%;height:auto;border:1px solid #ddd;border-radius:3px;display:block"></div>':'')
+       +'</div>';
+    });
+  }
+
+  // Aprovacao / Reprovacao
+  if(sol.decisao||sol.status==='aprovado_gestor'||sol.status==='confirmado_admin'||sol.status==='reprovado_gestor'||sol.status==='aprovado'||sol.status==='reprovado'||sol.status==='voucher_enviado'||sol.status==='devolvido'){
+    var APROVADOS=['aprovado','aprovado_gestor','confirmado_admin','voucher_enviado'];
+    var REPROVADOS=['reprovado','reprovado_gestor','devolvido'];
+    var isAprovP=APROVADOS.indexOf(sol.status)>=0;
+    var passIdxD=sol.passagemAprovadaIdx!=null?sol.passagemAprovadaIdx:-1;
+    var hospIdxD=sol.hospedagemAprovadaIdx!=null?sol.hospedagemAprovadaIdx:-1;
+    var passAprovD=passIdxD>=0&&sol.orcamentos&&sol.orcamentos[passIdxD]?sol.orcamentos[passIdxD]:null;
+    var hospAprovD=hospIdxD>=0&&sol.orcamentos&&sol.orcamentos[hospIdxD]?sol.orcamentos[hospIdxD]:null;
+    var aprovUser=null; for(var i=0;i<S.usuarios.length;i++){if(S.usuarios[i].id===sol.aprovId){aprovUser=S.usuarios[i];break;}}
+    var aprovNomeExib=aprovUser?aprovUser.nome:sol.aprovNome;
+    var aprovEmailExib=aprovUser?aprovUser.email||'':sol.aprovEmail||'';
+    var aprovCargo=aprovUser?aprovUser.cargo||'':'';
+    h+='<h2><span class="'+(isAprovP?'section-ok':'section-bad')+'">Decisao: '+(isAprovP?'APROVADO':'REPROVADO')+'</span></h2>'
+     +'<table>'
+     +'<tr><td>Status</td><td><span style="font-size:15px;font-weight:800;color:'+(isAprovP?'#0D7A4E':'#B91C1C')+'">'+(isAprovP?'&#10003; APROVADO':'&#10005; REPROVADO')+'</span></td></tr>'
+     +(passAprovD?'<tr><td>Voo aprovado</td><td><strong>Opcao '+(passIdxD+1)+'</strong> &mdash; '+esc(passAprovD.desc)+(passAprovD.valor?' &mdash; R$ '+esc(passAprovD.valor):'')+' | Ida: '+esc(sol.horIda)+' &middot; Volta: '+esc(sol.horVolta)+'</td></tr>':'')
+     +(hospAprovD&&(hospAprovD.hospDesc||hospAprovD.hospValor)?'<tr><td>Hospedagem aprovada</td><td><strong>Opcao '+(hospIdxD+1)+'</strong> &mdash; '+esc(hospAprovD.hospDesc||'')+(hospAprovD.hospValor?' &mdash; R$ '+esc(hospAprovD.hospValor):'')+'</td></tr>':'')
+     +'<tr><td>Aprovador</td><td>'
+       +'<div style="font-size:14px;font-weight:700;color:'+(isAprovP?'#0D7A4E':'#B91C1C')+'">'+esc(aprovNomeExib)+'</div>'
+       +(aprovCargo?'<div style="font-size:12px;color:#555;margin-top:1px">'+esc(aprovCargo)+'</div>':'')
+       +(aprovEmailExib?'<div style="font-size:12px;color:#1B4FD8;margin-top:1px">'+esc(aprovEmailExib)+'</div>':'')
+     +'</td></tr>'
+     +(sol.decEm?'<tr><td>Data</td><td style="font-size:13px;font-weight:600">'+fmtDt(sol.decEm)+'</td></tr>':'')
+     +(sol.decObs?'<tr><td>Obs gestor</td><td style="font-size:13px">'+esc(sol.decObs)+'</td></tr>':'')
+     +(sol.adminObs?'<tr><td>Obs admin</td><td style="font-size:13px">'+esc(sol.adminObs)+'</td></tr>':'')
+     +'</table>';
+  }
+
+  // Voucher
+  if(sol.voucherAnexos&&sol.voucherAnexos.length){
+    h+='<h2><span class="section-ok">Voucher / Comprovantes</span></h2>';
+    if(sol.voucherNome) h+='<div style="font-size:12px;margin-bottom:8px">'+esc(sol.voucherNome)+'</div>';
+    sol.voucherAnexos.forEach(function(a,i){
+      var isImg=a.tipo&&a.tipo.indexOf('image')>=0;
+      h+='<div style="margin-bottom:8px;padding:6px 8px;background:#f5f5f5;border:1px solid #ddd;border-radius:4px;font-size:11px">'
+       +'<strong>Anexo '+(i+1)+':</strong> '+esc(a.desc||a.nome||'-')
+       +'</div>';
+      if(isImg&&a.data){
+        h+='<div style="margin-bottom:10px"><img src="'+a.data+'" style="max-width:80%;max-height:200px;border:1px solid #ddd;border-radius:4px"></div>';
+      }
+    });
+  }
+
+  // Rodape
+  h+='<div class="footer-print">Documento gerado pelo sistema ViagemCorp &middot; '+new Date().toLocaleDateString('pt-BR')+' '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</div>';
+  return h;
+}
+
+function imprimirSol(){
+  var drawer=document.getElementById('drawer-sol');
+  var solId=parseInt(drawer.getAttribute('data-sol-id'));
+  var sol=null; for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol){toast('Solicitacao nao encontrada.');return;}
+  var pa=document.getElementById('print-area');
+  pa.innerHTML=buildProcessoHTML(sol);
+  pa.style.display='block';
+  // Give browser time to render all images before printing
+  var imgs=pa.querySelectorAll('img');
+  var loaded=0; var total=imgs.length;
+  var doPrint=function(){
+    window.print();
+    setTimeout(function(){ pa.style.display='none'; pa.innerHTML=''; },800);
+  };
+  if(total===0){
+    setTimeout(doPrint,150);
+  } else {
+    imgs.forEach(function(img){
+      if(img.complete){ loaded++; if(loaded>=total)setTimeout(doPrint,150); }
+      else{ img.onload=function(){ loaded++; if(loaded>=total)setTimeout(doPrint,150); }; img.onerror=function(){ loaded++; if(loaded>=total)setTimeout(doPrint,150); }; }
+    });
+  }
+}
+
+function abrirEnvioProcesso(){
+  var modal=document.getElementById('modal-envio-proc');
+  if(modal){
+    modal.style.display='flex';
+    var inp=document.getElementById('proc-email-dest');
+    if(inp)inp.focus();
+  }
+}
+
+function enviarProcesso(){
+  var dest=document.getElementById('proc-email-dest')?document.getElementById('proc-email-dest').value.trim():'';
+  var msg=document.getElementById('proc-email-msg')?document.getElementById('proc-email-msg').value.trim():'';
+  if(!dest){toast('Informe o e-mail do destinatario.');return;}
+  var drawer=document.getElementById('drawer-sol');
+  var solId=parseInt(drawer.getAttribute('data-sol-id'));
+  var sol=null; for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol){toast('Solicitacao nao encontrada.');return;}
+  var SM={
+    aguardando_cotacao:'Aguardando cotacao',
+    cotacao_enviada:'Aguardando aprovacao gestor',
+    aprovado_gestor:'Aprovado pelo gestor — aguardando confirmacao admin',
+    reprovado_gestor:'Reprovado pelo gestor',
+    confirmado_admin:'Compra confirmada pelo administrativo',
+    devolvido:'Devolvido ao solicitante para revisao',
+    aprovado:'Aprovado',reprovado:'Reprovado',
+    rascunho:'Editando',voucher_enviado:'Voucher enviado'
+  };
+  var nl='\n';
+  var corpo=(msg?msg+nl+nl:'')
+   +'=== PROCESSO DE VIAGEM ==='+nl+nl
+   +'Viajante: '+sol.viajante+nl
+   +'Rota: '+sol.partida+' -> '+sol.chegada+nl
+   +'Ida: '+fmt(sol.ida)+' '+sol.horIda+nl
+   +'Volta: '+fmt(sol.volta)+' '+sol.horVolta+nl
+   +'Tipo: '+sol.tipo+' | Bagagem: '+(sol.bagagem==='sim'?'Sim':'Nao')+nl
+   +'Hospedagem: '+(sol.hosp==='sim'?'Sim - '+sol.hospLocal+' ('+sol.acomo+')':'Nao')+nl
+   +'Classe: '+sol.classeLabel+nl
+   +'Centro: '+sol.centro+nl
+   +'Motivo: '+sol.motivo+nl
+   +'Aprovador: '+sol.aprovNome+nl
+   +(sol.justif?'Justificativa: '+sol.justif+nl:'')
+   +nl+'=== STATUS: '+(SM[sol.status]||sol.status)+' ==='+nl;
+
+  if(sol.orcamentos&&sol.orcamentos.length){
+    var passIdx=sol.passagemAprovadaIdx!=null?sol.passagemAprovadaIdx:-1;
+    var hospIdx=sol.hospedagemAprovadaIdx!=null?sol.hospedagemAprovadaIdx:-1;
+    corpo+=nl+'=== ORCAMENTOS ==='+nl;
+    sol.orcamentos.forEach(function(o,i){
+      var marcaPass=(passIdx===i)?'  << PASSAGEM APROVADA':'';
+      var marcaHosp=(hospIdx===i)?'  << HOSPEDAGEM APROVADA':'';
+      corpo+='Opcao '+(i+1)+': '+o.desc+(o.valor?' - R$ '+o.valor:'')+marcaPass+nl;
+      if(o.hospDesc) corpo+='  Hotel: '+o.hospDesc+(o.hospValor?' - R$ '+o.hospValor:'')+marcaHosp+nl;
+      if(o.obs) corpo+='  Obs passagem: '+o.obs+nl;
+      if(o.hospObs) corpo+='  Obs hospedagem: '+o.hospObs+nl;
+    });
+  }
+
+  if(sol.decisao||sol.status==='aprovado_gestor'||sol.status==='confirmado_admin'||sol.status==='reprovado_gestor'){
+    var passIdx2=sol.passagemAprovadaIdx!=null?sol.passagemAprovadaIdx:-1;
+    var hospIdx2=sol.hospedagemAprovadaIdx!=null?sol.hospedagemAprovadaIdx:-1;
+    var passAprov2=passIdx2>=0&&sol.orcamentos&&sol.orcamentos[passIdx2]?sol.orcamentos[passIdx2]:null;
+    var hospAprov2=hospIdx2>=0&&sol.orcamentos&&sol.orcamentos[hospIdx2]?sol.orcamentos[hospIdx2]:null;
+    var isAprov=sol.status==='aprovado'||sol.status==='aprovado_gestor'||sol.status==='confirmado_admin';
+    corpo+=nl+'=== DECISAO: '+(isAprov?'APROVADO':'REPROVADO')+' ==='+nl;
+    if(sol.decEm) corpo+='Data: '+fmtDt(sol.decEm)+nl;
+    if(passAprov2){
+      corpo+='Voo aprovado: Opcao '+(passIdx2+1)+' — '+passAprov2.desc+(passAprov2.valor?' | R$ '+passAprov2.valor:'')+nl;
+      corpo+='Horario ida: '+sol.horIda+' | Horario volta: '+sol.horVolta+nl;
+    }
+    if(hospAprov2&&(hospAprov2.hospDesc||hospAprov2.hospValor)){
+      corpo+='Hospedagem aprovada: Opcao '+(hospIdx2+1)+' — '+hospAprov2.hospDesc+(hospAprov2.hospValor?' | R$ '+hospAprov2.hospValor:'')+nl;
+    }
+    if(sol.decObs) corpo+='Obs gestor: '+sol.decObs+nl;
+    if(sol.adminObs) corpo+='Obs admin: '+sol.adminObs+nl;
+  }
+
+  if(sol.voucherAnexos&&sol.voucherAnexos.length){
+    corpo+=nl+'=== VOUCHER ==='+nl;
+    sol.voucherAnexos.forEach(function(a,i){
+      corpo+='Anexo '+(i+1)+': '+(a.desc||a.nome||'-')+nl;
+    });
+    corpo+='(Para baixar os arquivos, acesse o ViagemCorp e clique na solicitacao.)'+nl;
+  }
+
+  document.getElementById('modal-envio-proc').style.display='none';
+  sendEmail([dest],'Processo de Viagem - '+sol.viajante+' | '+sol.partida+' -> '+sol.chegada,corpo,function(ok){
+    if(ok){
+      toast('Processo enviado para '+dest+'!');
+      document.getElementById('proc-email-dest').value='';
+      document.getElementById('proc-email-msg').value='';
+    } else {
+      toast('Falha no envio. Verifique o EmailJS em Administracao > Regras.');
+    }
+  });
+}
+
+function toggleAlim(){
+  var sim=document.querySelector('input[name="alim"]:checked');
+  var wrap=document.getElementById('alim-wrap');
+  if(wrap) wrap.classList.toggle('hidden', !sim||sim.value!=='sim');
+  if(sim&&sim.value==='sim') calcAlim();
+}
+
+function calcAlim(){
+  var ida=gv('fida');
+  var volta=gv('fvolta');
+  var horIda=gv('fhorida');
+  var horVolta=gv('fhorvolta');
+  var cidade=gr('alim-cidade')||'interior';
+
+  var valDia = cidade==='capital' ? 110 : 90;
+
+  // Count calendar days
+  var diasTotal = 0;
+  if(ida && volta){
+    var d1=new Date(ida+'T12:00:00');
+    var d2=new Date(volta+'T12:00:00');
+    diasTotal = Math.round((d2-d1)/86400000) + 1;
+    if(diasTotal<1) diasTotal=1;
+  }
+
+  // Parse ida hour
+  var horaIda = 0;
+  if(horIda){ var mi=horIda.match(/(\d{1,2})[:\s]/); if(mi) horaIda=parseInt(mi[1]); }
+  // Parse volta hour
+  var horaVolta = 23;
+  if(horVolta){ var mv=horVolta.match(/(\d{1,2})[:\s]/); if(mv) horaVolta=parseInt(mv[1]); }
+
+  var regras=[];
+  var diasCalculados = 0;
+
+  if(diasTotal === 1){
+    // Same day trip - meia diaria
+    diasCalculados = 0.5;
+    regras.push('Viagem no mesmo dia: meia diaria');
+  } else {
+    // ── Dia de IDA ──────────────────────────────────────────
+    // Apos 14h: so jantar = meia diaria
+    // Ate 14h: almoco + jantar = diaria cheia
+    if(horaIda > 14){
+      diasCalculados += 0.5;
+      regras.push('Ida apos 14h: meia diaria (somente jantar)');
+    } else {
+      diasCalculados += 1;
+      regras.push('Ida ate 14h: diaria cheia (almoco + jantar)');
+    }
+
+    // ── Dias intermediarios ──────────────────────────────────
+    var diasMeio = diasTotal - 2;
+    if(diasMeio > 0){
+      diasCalculados += diasMeio;
+      if(diasMeio === 1)
+        regras.push('1 dia completo: diaria cheia');
+      else
+        regras.push(diasMeio+' dias completos: '+diasMeio+' diarias cheias');
+    }
+
+    // ── Dia de RETORNO ───────────────────────────────────────
+    // A partir de 18h: ficou o dia todo = diaria cheia (almoco + jantar)
+    // Ate 14h: so almoco = meia diaria
+    // Entre 14h e 18h: so almoco = meia diaria
+    // Ate 10h: sem refeicao = 0
+    if(horaVolta <= 10){
+      diasCalculados += 0;
+      regras.push('Retorno ate 10h: sem diaria (sem refeicao)');
+    } else if(horaVolta >= 18){
+      diasCalculados += 1;
+      regras.push('Retorno a partir de 18h: diaria cheia (ficou o dia todo)');
+    } else {
+      diasCalculados += 0.5;
+      regras.push('Retorno entre 10h e 18h: meia diaria (somente almoco)');
+    }
+  }
+
+  var totalAuto = diasCalculados * valDia;
+
+  // Check manual adjustment
+  var ajusteEl = document.getElementById('alim-ajuste');
+  var ajuste = ajusteEl ? parseFloat(ajusteEl.value) : NaN;
+  var totalFinal = isNaN(ajuste) ? totalAuto : ajuste * valDia;
+  var diasExib = isNaN(ajuste) ? diasCalculados : ajuste;
+
+  // Update UI
+  var elDias=document.getElementById('alim-dias');
+  var elValDia=document.getElementById('alim-valdia');
+  var elTotal=document.getElementById('alim-total');
+  var elRegras=document.getElementById('alim-regras');
+  var elSug=document.getElementById('alim-sug');
+
+  if(elDias) elDias.textContent=diasExib % 1 === 0 ? diasExib : diasExib.toFixed(1);
+  if(elValDia) elValDia.textContent='R$ '+valDia.toFixed(0);
+  if(elTotal) elTotal.textContent='R$ '+totalFinal.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  if(elSug) elSug.textContent='Sugestao automatica: '+diasCalculados.toFixed(1)+' diaria(s) = R$ '+totalAuto.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  if(elRegras && regras.length){
+    elRegras.innerHTML=regras.map(function(r){
+      return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'+r+'</div>';
+    }).join('');
+  } else if(elRegras){
+    elRegras.innerHTML='<div style="color:var(--tx3);font-style:italic">Preencha as datas e horarios da viagem para ver as regras aplicadas.</div>';
+  }
+}
+
+
+
+function getAlimentacao(){
+  var alim=gr('alim');
+  if(alim!=='sim') return null;
+  var tipo=gr('alim-tipo');
+  var cidade=gr('alim-cidade')||'interior';
+  var diaria=gr('alim-diaria')||'cheia';
+  var ida=gv('fida');
+  var volta=gv('fvolta');
+  var ajusteEl=document.getElementById('alim-ajuste');
+  var ajuste=ajusteEl?parseFloat(ajusteEl.value):NaN;
+  var dias=0;
+  if(ida&&volta){
+    var d1=new Date(ida+'T12:00:00'),d2=new Date(volta+'T12:00:00');
+    var diasTotal=Math.round((d2-d1)/86400000)+1;
+    if(diasTotal<1)diasTotal=1;
+    if(!isNaN(ajuste)){ dias=ajuste; }
+    else {
+      // auto calc
+      var horIda=gv('fhorida'),horVolta=gv('fhorvolta');
+      var hIda=0,hVolta=23;
+      var mi=horIda.match(/(\d{1,2})[:\s]/); if(mi)hIda=parseInt(mi[1]);
+      var mv=horVolta.match(/(\d{1,2})[:\s]/); if(mv)hVolta=parseInt(mv[1]);
+      if(diasTotal===1){ dias=0.5; }
+      else {
+        dias += hIda>14?0.5:1;
+        dias += Math.max(0,diasTotal-2);
+        dias += hVolta<=10?0:(hVolta>=18?1:0.5);
+      }
+    }
+  }
+  var valDia=cidade==='capital'?110:90;
+  var total=dias*valDia;
+  return {
+    tipo:tipo,
+    cidade:cidade,
+    diaria:diaria,
+    dias:dias,
+    valorDia:valDia,
+    total:total,
+    obs:gv('alim-obs'),
+    email:tipo==='flash'?'dp@groupsoftware.com.br':'financeiro@groupsoftware.com.br'
+  };
+}
+
+function validateAlim(){
+  var alim=gr('alim');
+  if(alim!=='sim') return true;
+  var tipo=gr('alim-tipo');
+  var em=document.getElementById('ealim-tipo');
+  if(!tipo){
+    var e=document.querySelector('input[name="alim-tipo"]');
+    if(em)em.classList.add('show');
+    toast('Selecione Flash ou Clara para a alimentacao.');
+    return false;
+  }
+  if(em)em.classList.remove('show');
+  return true;
+}
+
+function resetAlim(){
+  var n=document.querySelector('input[name="alim"][value="nao"]'); if(n)n.checked=true;
+  var w=document.getElementById('alim-wrap'); if(w)w.classList.add('hidden');
+  document.querySelectorAll('input[name="alim-tipo"]').forEach(function(e){e.checked=false;});
+  var i=document.querySelector('input[name="alim-cidade"][value="interior"]'); if(i)i.checked=true;
+  var c=document.querySelector('input[name="alim-diaria"][value="cheia"]'); if(c)c.checked=true;
+  var o=document.getElementById('alim-obs'); if(o)o.value='';
+  var aj=document.getElementById('alim-ajuste'); if(aj)aj.value='';
+  resetTrechos();
+}
+
+function abrirTrocarSenha(){
+  var modal=document.getElementById('modal-senha');
+  var err=document.getElementById('modal-senha-err');
+  var user=document.getElementById('modal-senha-user');
+  if(modal) modal.style.display='flex';
+  if(user) user.textContent='Usuario: '+CU.login+' ('+CU.nome+')';
+  if(err) err.style.display='none';
+  ['senha-atual','senha-nova','senha-conf'].forEach(function(id){
+    var e=document.getElementById(id); if(e)e.value='';
+  });
+  setTimeout(function(){
+    var e=document.getElementById('senha-atual'); if(e)e.focus();
+  },100);
+}
+
+function fecharTrocarSenha(){
+  var modal=document.getElementById('modal-senha');
+  if(modal) modal.style.display='none';
+}
+
+function salvarSenha(){
+  var atual=document.getElementById('senha-atual')?document.getElementById('senha-atual').value:'';
+  var nova=document.getElementById('senha-nova')?document.getElementById('senha-nova').value:'';
+  var conf=document.getElementById('senha-conf')?document.getElementById('senha-conf').value:'';
+  var err=document.getElementById('modal-senha-err');
+
+  function showErr(msg){ if(err){err.textContent=msg;err.style.display='block';} }
+
+  if(!atual||!nova||!conf){ showErr('Preencha todos os campos.'); return; }
+  if(atual!==CU.senha){ showErr('Senha atual incorreta.'); return; }
+  if(nova.length<6){ showErr('A nova senha deve ter pelo menos 6 caracteres.'); return; }
+  if(nova!==conf){ showErr('A confirmacao nao confere com a nova senha.'); return; }
+  if(nova===atual){ showErr('A nova senha deve ser diferente da atual.'); return; }
+
+  // Update in S.usuarios
+  for(var i=0;i<S.usuarios.length;i++){
+    if(S.usuarios[i].id===CU.id){
+      S.usuarios[i].senha=nova;
+      break;
+    }
+  }
+  CU.senha=nova;
+  save();
+  fecharTrocarSenha();
+  toast('Senha alterada com sucesso!');
+}
+
+function excluirSol(solId, event){
+  if(event){ event.stopPropagation(); }
+  var sol=null; for(var i=0;i<S.sols.length;i++){if(S.sols[i].id===solId){sol=S.sols[i];break;}}
+  if(!sol)return;
+  var msg='Excluir: '+sol.viajante+' -> '+sol.chegada+' ('+fmt(sol.ida)+')? Esta acao nao pode ser desfeita.';
+  if(!confirm(msg))return;
+  S.sols=S.sols.filter(function(s){return s.id!==solId;});
+  save(); renderPainel(); badge();
+  toast('Solicitacao excluida.');
+}
+
+function filtrar(lista){
+  if(CU.tipo==='admin')return lista;
+  if(CU.tipo==='solicitante')return lista.filter(function(s){return s.criadoPor===CU.id;});
+  if(CU.tipo==='aprovador')return lista.filter(function(s){return s.aprovId===CU.id;});
+  return[];
+}
+function podeAprovar(sol){return CU.tipo==='admin'||(CU.tipo==='aprovador'&&sol.aprovId===CU.id);}
+
+function badge(){
+  if(!CU)return;
+  var c=S.sols.filter(function(s){return s.status==='aguardando_cotacao';}).length;
+  var bc=document.getElementById('nbadge-cot');if(bc){bc.textContent=c;bc.classList.toggle('hidden',c===0);}
+  var p=S.sols.filter(function(s){return s.status==='cotacao_enviada'&&podeAprovar(s);}).length;
+  var ba=document.getElementById('nbadge-aprov');if(ba){ba.textContent=p;ba.classList.toggle('hidden',p===0);}
+}
+function toast(msg,dur){
+  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},dur||3500);
+}
+</script>
+</body>
+</html>
